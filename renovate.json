@@ -1,0 +1,30 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":semanticCommits"
+    ],
+    "baseBranchPatterns": [
+        "main"
+    ],
+    "prHourlyLimit": 0,
+    "prConcurrentLimit": 0,
+    "packageRules": [
+        {
+            "description": "SvelteKit, its adapter, the Svelte plugin and Vite are released against each other: bump them in one pull request",
+            "matchPackageNames": [
+                "svelte",
+                "vite",
+                "/^@sveltejs//"
+            ],
+            "groupName": "svelte and vite"
+        },
+        {
+            "description": "TypeScript 6 and later are not yet checked against svelte-check",
+            "matchPackageNames": [
+                "typescript"
+            ],
+            "allowedVersions": "<6"
+        }
+    ]
+}

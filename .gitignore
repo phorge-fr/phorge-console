@@ -1,0 +1,10 @@
+node_modules/
+.svelte-kit/
+build/
+.env
+.env.*
+!.env.example
+vite.config.*.timestamp-*
+
+# Local assistant skills: third-party code, installed per machine
+.claude/skills/
