@@ -27,7 +27,7 @@ Use Node 22 (`.nvmrc`) and the pnpm version in `package.json`. Commit `pnpm-lock
 - **The console is rendered on the server and tokens stay out of the browser.** The session lives on the Node server and uses a confidential OIDC client defined by an Authentik blueprint in Hangar ([decision 0009](https://github.com/phorge-fr/Hangar/blob/main/docs/decisions/0009-build-the-frontend-with-sveltekit.md)). Never put an access token in client-side code, local storage or a URL.
 - **The showcase site is prerendered to static HTML**, and the console is marked `noindex`.
 - **Respect the GDPR notes** in Hangar ([docs/reference/gdpr-personal-data.md](https://github.com/phorge-fr/Hangar/blob/main/docs/reference/gdpr-personal-data.md)) for cookies, third-party content (fonts, scripts, analytics) and logs of personal data.
-- **Design tokens come from the brand guide** ([phorge-fr/.github#8](https://github.com/phorge-fr/.github/issues/8)). Do not invent a palette or pick a typeface before it is merged.
+- **Design tokens come from the brand guide** ([brand guide](https://github.com/phorge-fr/.github/blob/main/docs/reference/brand-guide.md)). Do not invent a palette or pick a typeface. `src/lib/styles/tokens.css` and `static/brand/` are copies of `brand/` in `phorge-fr/.github`: change them there first, then copy. See [the design system reference](docs/reference/design-system.md).
 - A new dependency is checked for license compatibility (Apache-2.0) and listed in `THIRD_PARTY_NOTICES.md`.
 - Never commit a secret, a token or an address of a private system.
 - When something is missing or ambiguous (public host names, who may use which console view), ask; do not invent.
