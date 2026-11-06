@@ -1,0 +1,49 @@
+/* Global styles: the brand tokens in tokens.css and the typeface of the brand guide. */
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-600.css';
+@import '@fontsource/source-sans-3/latin-700.css';
+@import './tokens.css';
+
+:root {
+    color-scheme: light;
+}
+
+body {
+    margin: 0;
+    background: var(--phorge-bg);
+    color: var(--phorge-text);
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    line-height: 1.5;
+}
+
+a {
+    color: var(--phorge-primary);
+}
+
+:focus-visible {
+    outline: 2px solid var(--phorge-accent);
+    outline-offset: 2px;
+}
+
+/* The wordmark has a light and a dark file; the one that matches the theme is shown. */
+.logo-dark {
+    display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .logo-light {
+        display: none;
+    }
+
+    :root:not([data-theme='light']) .logo-dark {
+        display: inline;
+    }
+}
+
+:root[data-theme='dark'] .logo-light {
+    display: none;
+}
+
+:root[data-theme='dark'] .logo-dark {
+    display: inline;
+}
