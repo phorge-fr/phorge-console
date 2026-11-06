@@ -6,7 +6,14 @@ Pages are grouped by what the reader wants, following [the organization's docume
 
 | Page | Content |
 | --- | --- |
+| [Console configuration](reference/configuration.md) | The environment variables, the routes of the sign-in, the cookies and the headers |
 | [Design system](reference/design-system.md) | Where the tokens, the typeface and the logos come from, the class names and how the themes switch |
+
+## Explanation
+
+| Page | Content |
+| --- | --- |
+| [How the console signs people in](explanation/how-the-console-signs-people-in.md) | The sign-in flow, why the session lives on the server, and its limits |
 
 ## How-to guides
 

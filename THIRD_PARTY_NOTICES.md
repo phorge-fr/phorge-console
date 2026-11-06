@@ -9,6 +9,7 @@ phorge-console is licensed under the [Apache License 2.0](LICENSE). It is built 
 | [@sveltejs/kit](https://github.com/sveltejs/kit) | MIT |
 | [@sveltejs/vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte) | MIT |
 | [@unocss/extractor-svelte](https://github.com/unocss/unocss) | MIT |
+| [openid-client](https://github.com/panva/openid-client) | MIT |
 | [prettier](https://github.com/prettier/prettier) | MIT |
 | [prettier-plugin-svelte](https://github.com/sveltejs/prettier-plugin-svelte) | MIT |
 | [svelte](https://github.com/sveltejs/svelte) | MIT |
