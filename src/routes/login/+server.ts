@@ -17,7 +17,9 @@ export const GET: RequestHandler = async ({ url, cookies, locals }) => {
         startPending(cookies, login.pending);
         authorizationUrl = login.url;
     } catch (e) {
-        console.error('sign-in could not start:', e instanceof Error ? e.message : e);
+        // The reason is for the logs, with what caused it (a network error says which): it never holds a token or a secret.
+        const cause = e instanceof Error && e.cause instanceof Error ? ` (${e.cause.message})` : '';
+        console.error('sign-in could not start:', e instanceof Error ? e.message : e, cause);
         error(503, 'Sign-in is unavailable. Try again in a moment.');
     }
     // Only the origin of the identity provider is allowed as a destination outside this site.
