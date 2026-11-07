@@ -2,7 +2,7 @@
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
-    import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS, SIZES, usageOf } from '#lib/instances';
+    import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS, usageOf } from '#lib/instances';
     import { PLANS } from '#lib/plans';
 
     let { data, form } = $props();
@@ -12,7 +12,7 @@
     const plan = $derived(PLANS[data.tenant.plan]);
     const values = $derived(form?.values);
     const usage = $derived(usageOf(data.instances));
-    // What the plan still has room for: a ready-made size that does not fit is shown, and cannot be chosen.
+    // What the plan still has room for, said under the size so that the person knows what fits.
     const left = $derived({
         instances: plan.instances - usage.instances,
         vcpu: plan.vcpu - usage.vcpu,
@@ -20,16 +20,6 @@
         diskGiB: plan.diskGiB - usage.diskGiB
     });
     const full = $derived(left.instances <= 0);
-    const fits = (size: (typeof SIZES)[keyof typeof SIZES]) =>
-        !full &&
-        size.cpu <= left.vcpu &&
-        size.memoryMiB / 1024 <= left.memoryGiB &&
-        size.diskGiB <= left.diskGiB;
-    const firstFit = $derived(
-        (Object.keys(SIZES) as (keyof typeof SIZES)[]).find((name) => fits(SIZES[name])) ??
-            'standard'
-    );
-    const chosen = $derived(values?.size ?? firstFit);
 </script>
 
 <svelte:head>
@@ -108,69 +98,16 @@
                 </p>
             </div>
 
-            <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+            <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
                 <legend class="field-label mb-2 p-0">Size</legend>
-                {#each Object.entries(SIZES) as [key, size] (key)}
-                    {@const ok = fits(size)}
-                    <label
-                        class="flex items-start gap-3 rounded-lg border border-line bg-bg p-3.5 transition-colors duration-150 has-[:checked]:border-primary has-[:checked]:bg-highlight {ok
-                            ? 'cursor-pointer hover:bg-surface'
-                            : 'opacity-60'}"
-                    >
-                        <input
-                            type="radio"
-                            name="size"
-                            value={key}
-                            checked={chosen === key}
-                            disabled={!ok}
-                            class="mt-1"
-                        />
-                        <span class="tnum">
-                            <span class="block font-semibold">{size.label}</span>
-                            <span class="block text-fg-2">
-                                {size.cpu} vCPU · {size.memoryMiB / 1024} GiB of memory · {size.diskGiB}
-                                GiB of disk
-                            </span>
-                            {#if !ok}
-                                <span class="block text-sm text-warn-fg">
-                                    {full
-                                        ? 'The plan is full'
-                                        : 'More than what is left in the plan'}
-                                </span>
-                            {/if}
-                        </span>
-                    </label>
-                {/each}
-                <label
-                    class="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-bg p-3.5 transition-colors duration-150 hover:bg-surface has-[:checked]:border-primary has-[:checked]:bg-highlight"
-                >
-                    <input
-                        type="radio"
-                        name="size"
-                        value="custom"
-                        checked={chosen === 'custom'}
-                        class="mt-1"
-                    />
-                    <span>
-                        <span class="block font-semibold">Custom</span>
-                        <span class="block text-fg-2">Choose the numbers yourself, below.</span>
-                    </span>
-                </label>
-                <details class="mt-1" open={chosen === 'custom'}>
-                    <summary class="cursor-pointer text-sm font-semibold text-fg-2">
-                        Custom size
-                    </summary>
-                    <div class="mt-3">
-                        <ResourceFields
-                            values={{
-                                cpu: values?.cpu ?? '',
-                                memoryMiB: values?.memoryMiB ?? '',
-                                diskGiB: values?.diskGiB ?? ''
-                            }}
-                            hint="Used when Custom is chosen. An empty field takes the default: 1 vCPU, 1024 MiB, 10 GiB."
-                        />
-                    </div>
-                </details>
+                <ResourceFields
+                    values={{
+                        cpu: values?.cpu ?? '',
+                        memoryMiB: values?.memoryMiB ?? '',
+                        diskGiB: values?.diskGiB ?? ''
+                    }}
+                    hint="An empty field takes the default: 1 vCPU, 1024 MiB, 10 GiB."
+                />
                 <p class="help tnum">
                     Left in the plan: {Math.max(left.instances, 0)}
                     {left.instances === 1 ? 'VM' : 'VMs'}, {Math.max(left.vcpu, 0)} vCPU, {Math.max(

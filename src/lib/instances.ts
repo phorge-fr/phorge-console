@@ -65,12 +65,3 @@ export const usageOf = (instances: { cpu: number; memoryMiB: number; diskGiB: nu
     memoryGiB: instances.reduce((sum, i) => sum + i.memoryMiB, 0) / 1024,
     diskGiB: instances.reduce((sum, i) => sum + i.diskGiB, 0)
 });
-
-/** The ready-made sizes of the creation form. The details stay available for those who want them. */
-export const SIZES = {
-    light: { label: 'Light', cpu: 1, memoryMiB: 1024, diskGiB: 10 },
-    standard: { label: 'Standard', cpu: 2, memoryMiB: 2048, diskGiB: 20 },
-    heavy: { label: 'Heavy', cpu: 4, memoryMiB: 4096, diskGiB: 40 }
-} as const;
-
-export type SizeName = keyof typeof SIZES;

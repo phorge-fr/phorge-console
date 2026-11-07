@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { INSTANCE_NAME, keysProblem, parseKeys, readNumber, SIZES } from '#lib/instances';
+import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
 import { listImages } from '#lib/server/images';
 import { createInstance, listInstances, type InstanceCreate } from '#lib/server/instances';
 import type { Actions, PageServerLoad } from './$types';
@@ -20,11 +20,9 @@ export const actions: Actions = {
         const name = String(form.get('name') ?? '').trim();
         const image = String(form.get('image') ?? '').trim();
         const keysText = String(form.get('sshPublicKeys') ?? '');
-        const size = String(form.get('size') ?? 'standard');
         const values = {
             name,
             image,
-            size,
             cpu: String(form.get('cpu') ?? ''),
             memoryMiB: String(form.get('memoryMiB') ?? ''),
             diskGiB: String(form.get('diskGiB') ?? ''),
@@ -44,19 +42,12 @@ export const actions: Actions = {
         if (name === 'new')
             return refuse('The name new is reserved by the console. Choose another one.');
         if (!image) return refuse('Choose an image.');
-        // A ready-made size, or the details typed by the person: empty details mean the defaults of the API.
-        const preset = size in SIZES ? SIZES[size as keyof typeof SIZES] : undefined;
-        const cpu = preset
-            ? { value: preset.cpu }
-            : readNumber(form, 'cpu', 'The number of vCPU', '');
+        // Empty fields mean the defaults of the API.
+        const cpu = readNumber(form, 'cpu', 'The number of vCPU', '');
         if ('message' in cpu) return refuse(cpu.message);
-        const memory = preset
-            ? { value: preset.memoryMiB }
-            : readNumber(form, 'memoryMiB', 'The memory', ' MiB');
+        const memory = readNumber(form, 'memoryMiB', 'The memory', ' MiB');
         if ('message' in memory) return refuse(memory.message);
-        const disk = preset
-            ? { value: preset.diskGiB }
-            : readNumber(form, 'diskGiB', 'The disk', ' GiB');
+        const disk = readNumber(form, 'diskGiB', 'The disk', ' GiB');
         if ('message' in disk) return refuse(disk.message);
         const keys = parseKeys(keysText);
         const problem = keysProblem(keys);
