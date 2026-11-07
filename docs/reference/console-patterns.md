@@ -10,11 +10,11 @@ What every view of the console shares, so that a new one looks and behaves like 
 
 ## The frame
 
-Every page of the console is under `src/routes/(console)/`, and its layout draws the frame: the header with the tenant switcher and the sign-out button, then the navigation of the sections.
+Every page of the console is under `src/routes/(console)/`, and its layout draws the frame: a side column with the tenant menu, the sections, the account and the sign-out button (a bar with a menu button on a phone). A page starts with `PageHeader`.
 
 - The tenant is in the address: `/t/<tenant>/<section>`. The choice is never kept anywhere else, so a link, a bookmark or a reload shows the same thing.
 - The layout loads the tenants the person can see (`GET /v1/tenants`). If that call fails, the frame still shows, with a notice, so that the person can sign out; the page that needs the API reports the failure itself.
-- The tenant switcher is a plain form to `GET /switch`: it works without JavaScript and keeps the section the person is in.
+- The tenant menu is a `<details>` of plain links to `GET /switch`: it works without JavaScript and keeps the section the person is in.
 - Views that belong to a tenant go under `src/routes/(console)/t/[tenant=tenant]/`. Its layout loads the tenant, and `data.tenant` is available to them. `[tenant=tenant]` only matches a name the API could accept.
 - `/` is the home of the console. The showcase site lives in its own repository.
 

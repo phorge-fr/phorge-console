@@ -36,6 +36,7 @@
     },
     "dependencies": {
         "@fontsource/source-sans-3": "^5.3.1",
+        "@lucide/svelte": "^1.70.0",
         "openid-client": "^6.8.9"
     }
 }

@@ -5,6 +5,7 @@ phorge-console is licensed under the [Apache License 2.0](LICENSE). It is built 
 | Package | License |
 | --- | --- |
 | [@fontsource/source-sans-3](https://github.com/fontsource/font-files) | OFL-1.1 |
+| [@lucide/svelte](https://github.com/lucide-icons/lucide) | ISC |
 | [@sveltejs/adapter-node](https://github.com/sveltejs/kit) | MIT |
 | [@sveltejs/kit](https://github.com/sveltejs/kit) | MIT |
 | [@sveltejs/vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte) | MIT |

@@ -1,6 +1,9 @@
 <script lang="ts">
+    import ChevronRight from '@lucide/svelte/icons/chevron-right';
+    import Plus from '@lucide/svelte/icons/plus';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
     import EmptyState from '#lib/components/EmptyState.svelte';
+    import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import { PLANS } from '#lib/plans';
 
@@ -18,45 +21,83 @@
     <title>Tenants · Phorge console</title>
 </svelte:head>
 
-<main class="mx-auto max-w-6xl px-4 py-8">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <h1 class="text-3xl font-bold">Your tenants</h1>
-        {#if data.platformAdmin}
-            <a
-                href="/new"
-                class="inline-block rounded bg-primary px-5 py-2 font-semibold text-on-primary no-underline"
-                >New tenant</a
-            >
-        {/if}
-    </div>
+<main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
+    <PageHeader
+        title="Tenants"
+        subtitle="A tenant is a space with its own quota, images, virtual machines and members."
+    >
+        {#snippet actions()}
+            {#if data.platformAdmin}
+                <a href="/new" class="btn-primary">
+                    <Plus size={16} aria-hidden="true" />
+                    New tenant
+                </a>
+            {/if}
+        {/snippet}
+    </PageHeader>
 
     {#if data.tenants.length === 0}
-        <div class="mt-8">
-            <EmptyState title="You have no tenant yet">
-                <p>
-                    A tenant is a space with its own quota, images, virtual machines and members. A
-                    platform administrator creates it and gives you a role on it.
-                </p>
-            </EmptyState>
-        </div>
+        <EmptyState title="You are not in a tenant yet">
+            <p>
+                A platform administrator creates a tenant and gives you a role on it. It then shows
+                up here.
+            </p>
+        </EmptyState>
     {:else}
-        <ul class="mt-6 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-            {#each data.tenants as tenant (tenant.name)}
-                <li class="rounded border border-accent bg-surface p-5">
-                    <h2 class="text-xl font-semibold">
-                        <a href="/t/{tenant.name}">{tenant.displayName || tenant.name}</a>
-                    </h2>
-                    {#if tenant.displayName}
-                        <p class="font-mono text-sm text-muted">{tenant.name}</p>
-                    {/if}
-                    <p class="mt-3"><PhaseBadge phase={tenant.phase} /></p>
-                    <p class="mt-3 text-muted">
-                        Plan <strong class="text-fg">{tenant.plan}</strong>: up to {PLANS[
-                            tenant.plan
-                        ]?.instances} VM, {PLANS[tenant.plan]?.vcpu} vCPU
-                    </p>
-                </li>
-            {/each}
-        </ul>
+        <div class="panel overflow-hidden">
+            <table class="w-full border-collapse text-left">
+                <thead class="sr-only md:table-header-group md:not-sr-only">
+                    <tr class="border-b border-line bg-surface text-sm text-fg-3">
+                        <th scope="col" class="px-4 py-2.5 font-semibold">Name</th>
+                        <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
+                        <th scope="col" class="px-4 py-2.5 font-semibold">Plan</th>
+                        <th scope="col" class="w-10 px-4 py-2.5"
+                            ><span class="sr-only">Open</span></th
+                        >
+                    </tr>
+                </thead>
+                <tbody class="block md:table-row-group">
+                    {#each data.tenants as tenant (tenant.name)}
+                        {@const plan = PLANS[tenant.plan]}
+                        <tr
+                            class="relative block border-b border-line px-4 py-3 last:border-b-0 hover:bg-surface md:table-row md:px-0 md:py-0"
+                        >
+                            <td class="block py-0.5 md:table-cell md:px-4 md:py-3.5">
+                                <a
+                                    href="/t/{tenant.name}"
+                                    class="font-semibold text-fg no-underline after:absolute after:inset-0 after:content-['']"
+                                    >{tenant.displayName || tenant.name}</a
+                                >
+                                {#if tenant.displayName}
+                                    <span class="block font-mono text-sm text-fg-3"
+                                        >{tenant.name}</span
+                                    >
+                                {/if}
+                            </td>
+                            <td class="block py-1 md:table-cell md:px-4 md:py-3.5">
+                                <PhaseBadge phase={tenant.phase} />
+                            </td>
+                            <td class="tnum block py-0.5 text-fg-2 md:table-cell md:px-4 md:py-3.5">
+                                <span class="font-semibold capitalize text-fg">{tenant.plan}</span>
+                                {#if plan}
+                                    <span class="text-fg-3">
+                                        · {plan.instances}
+                                        {plan.instances === 1 ? 'VM' : 'VMs'} · {plan.vcpu} vCPU · {plan.memoryGiB}
+                                        GiB
+                                    </span>
+                                {/if}
+                            </td>
+                            <td class="hidden px-4 py-3.5 text-right md:table-cell">
+                                <ChevronRight
+                                    size={18}
+                                    class="inline text-fg-3"
+                                    aria-hidden="true"
+                                />
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
     {/if}
 </main>
