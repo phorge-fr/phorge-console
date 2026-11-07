@@ -1,6 +1,6 @@
 ---
 type: how-to
-audience: developer who works on the showcase site or the console
+audience: developer who works on the console
 verified: 2026-11-05
 ---
 
