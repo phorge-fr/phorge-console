@@ -24,6 +24,6 @@
         {#if page.status === 503 || page.status >= 500}
             <a href={page.url.pathname + page.url.search} data-sveltekit-reload>Try again</a>
         {/if}
-        <a href="/tenants">Your tenants</a>
+        <a href="/">Your tenants</a>
     </p>
 </main>

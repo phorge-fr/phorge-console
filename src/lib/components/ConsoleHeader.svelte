@@ -17,7 +17,7 @@
 
 <header class="border-b border-accent bg-surface">
     <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
-        <a href="/tenants" class="inline-flex" aria-label="Phorge console, your tenants">
+        <a href="/" class="inline-flex" aria-label="Phorge console, your tenants">
             <img
                 class="logo-light h-8 w-auto"
                 src="/brand/logo-wordmark-light.svg"

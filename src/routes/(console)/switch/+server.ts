@@ -9,6 +9,6 @@ const SECTIONS = new Set(['', 'images', 'instances', 'members']);
 export const GET: RequestHandler = ({ url }) => {
     const tenant = url.searchParams.get('tenant') ?? '';
     const section = url.searchParams.get('section') ?? '';
-    if (!TENANT_NAME.test(tenant)) redirect(303, '/tenants');
+    if (!TENANT_NAME.test(tenant)) redirect(303, '/');
     redirect(303, `/t/${tenant}${SECTIONS.has(section) && section ? `/${section}` : ''}`);
 };

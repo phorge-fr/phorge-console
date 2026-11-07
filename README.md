@@ -1,6 +1,6 @@
 # phorge-console
 
-The Phorge showcase site (`phorge.fr`) and the web console (`console.phorge.fr`), in one SvelteKit application. The console is a web interface to the [Phorge API](https://github.com/phorge-fr/phorge-api): tenants, images, instances and API keys.
+The web console of Phorge (`console.phorge.fr`), a SvelteKit application. The showcase page of `phorge.fr` is set aside in `src/site/` until it is decided where it lives. The console is a web interface to the [Phorge API](https://github.com/phorge-fr/phorge-api): tenants, images, instances and API keys.
 
 The stack is chosen in [Hangar decision 0009](https://github.com/phorge-fr/Hangar/blob/main/docs/decisions/0009-build-the-frontend-with-sveltekit.md): SvelteKit with `adapter-node`, UnoCSS and pnpm. It runs on the `svc` cluster ([decision 0008](https://github.com/phorge-fr/Hangar/blob/main/docs/decisions/0008-keep-svc-and-host-the-frontend-on-it.md)).
 

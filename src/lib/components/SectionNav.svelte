@@ -12,7 +12,7 @@
                   { href: `/t/${tenant}/instances`, label: 'Instances' },
                   { href: `/t/${tenant}/members`, label: 'Members' }
               ]
-            : [{ href: '/tenants', label: 'Tenants', exact: true }]),
+            : [{ href: '/', label: 'Tenants', exact: true }]),
         { href: '/api-keys', label: 'API keys' }
     ]);
 
