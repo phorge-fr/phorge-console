@@ -39,6 +39,22 @@
         {/snippet}
     </PageHeader>
 
+    {#if data.deleted}
+        <div class="mb-6">
+            <Alert
+                tone="info"
+                title={data.deleted.gone ? 'Instance deleted' : 'Deleting the instance'}
+            >
+                {#if data.deleted.gone}
+                    <span class="font-mono">{data.deleted.name}</span> and its disk are gone.
+                {:else}
+                    <span class="font-mono">{data.deleted.name}</span> and its disk are being destroyed.
+                    This list follows it until it is gone.
+                {/if}
+            </Alert>
+        </div>
+    {/if}
+
     {#if data.instances.length === 0}
         <EmptyState title="No instance yet">
             <p>Create a virtual machine from one of your images. It is ready in about a minute.</p>
