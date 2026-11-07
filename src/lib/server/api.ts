@@ -126,6 +126,13 @@ export async function apiAction<T>(
     return { ok: true, status: response.status, data: data as T };
 }
 
+/** A request with a JSON body, for `apiAction`. */
+export const jsonRequest = (method: string, body: unknown): RequestInit => ({
+    method,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+});
+
 /** The caller, as the API sees it (`GET /v1/whoami`). */
 export type Identity = {
     kind: 'user' | 'servicekey';

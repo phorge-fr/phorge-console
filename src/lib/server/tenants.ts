@@ -1,6 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import type { Plan } from '#lib/plans';
-import { apiAction, apiJson } from './api';
+import { apiAction, apiJson, jsonRequest as json } from './api';
 
 /** `Provisioning` is being made or changed, `Failed` is not ready after 3 minutes (see `problems`). */
 export type Phase = 'Provisioning' | 'Ready' | 'Failed' | 'Deleting';
@@ -24,12 +24,6 @@ export const listTenants = async (event: RequestEvent) =>
 
 export const getTenant = (event: RequestEvent, name: string) =>
     apiJson<Tenant>(event, `/v1/tenants/${encodeURIComponent(name)}`);
-
-const json = (method: string, body: unknown): RequestInit => ({
-    method,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body)
-});
 
 const NOT_ADMIN = 'Only platform administrators can do this.';
 
