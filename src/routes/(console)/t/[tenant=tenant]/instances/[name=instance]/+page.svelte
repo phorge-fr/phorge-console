@@ -5,10 +5,10 @@
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
     import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
-    import PhaseBadge from '#lib/components/PhaseBadge.svelte';
+    import InstanceStatus from '#lib/components/InstanceStatus.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
-    import { describeState, MAX_SSH_KEYS } from '#lib/instances';
+    import { MAX_SSH_KEYS } from '#lib/instances';
 
     let { data, form } = $props();
 
@@ -33,13 +33,9 @@
 <AutoRefresh active={busy} />
 
 <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
-    <PageHeader
-        title={instance.name}
-        subtitle={describeState(instance) || undefined}
-        back={{ href: list, label: 'All instances' }}
-    >
+    <PageHeader title={instance.name} back={{ href: list, label: 'All instances' }}>
         {#snippet status()}
-            <PhaseBadge phase={instance.phase} />
+            <InstanceStatus {instance} />
         {/snippet}
         {#snippet actions()}
             {#if instance.phase === 'Ready'}

@@ -58,10 +58,6 @@ export function readNumber(
     return { value };
 }
 
-/** What Incus reports and what the VM is doing, in one phrase: `Running`, `Stopped`, `Stopped, starting`. Empty until the VM exists. */
-export const describeState = (instance: { state?: string; transition?: 'starting' | 'stopping' }) =>
-    [instance.state, instance.transition].filter(Boolean).join(', ');
-
 /** What a set of instances uses, in the units of a plan. Stopped machines count, as they do for the quota of the platform. */
 export const usageOf = (instances: { cpu: number; memoryMiB: number; diskGiB: number }[]) => ({
     instances: instances.length,
