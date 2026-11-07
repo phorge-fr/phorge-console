@@ -16,7 +16,7 @@ Every page of the console is under `src/routes/(console)/`, and its layout draws
 - The layout loads the tenants the person can see (`GET /v1/tenants`). If that call fails, the frame still shows, with a notice, so that the person can sign out; the page that needs the API reports the failure itself.
 - The tenant switcher is a plain form to `GET /switch`: it works without JavaScript and keeps the section the person is in.
 - Views that belong to a tenant go under `src/routes/(console)/t/[tenant=tenant]/`. Its layout loads the tenant, and `data.tenant` is available to them. `[tenant=tenant]` only matches a name the API could accept.
-- `/` is the home of the console. The showcase page, with its own header and footer, is set aside in `src/site/` and is not served.
+- `/` is the home of the console. The showcase site lives in its own repository.
 
 ## States
 

@@ -1,6 +1,6 @@
 ---
 type: reference
-audience: developer who builds a page or a component of the showcase site or the console
+audience: developer who builds a page or a component of the console
 verified: 2026-11-06
 ---
 
@@ -43,4 +43,4 @@ For example `bg-surface`, `text-muted`, `border-accent`. The font families are `
 
 ## Layout
 
-`src/routes/+layout.svelte` wraps every page in `SiteHeader` (the wordmark and an optional navigation) and `SiteFooter`, both in `src/lib/components/`. Import from `src/lib` with `#lib/...`: SvelteKit 3 no longer provides `$lib`, and the alias is the `imports` field of `package.json`.
+`src/routes/+layout.svelte` loads the styles only; the frame of the console (header, section navigation) is in `src/routes/(console)/+layout.svelte` and its components are in `src/lib/components/`. Import from `src/lib` with `#lib/...`: SvelteKit 3 no longer provides `$lib`, and the alias is the `imports` field of `package.json`.
