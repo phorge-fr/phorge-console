@@ -1,5 +1,5 @@
 /** Where the person lands after signing in when nothing else was asked. */
-export const DEFAULT_NEXT = '/account';
+export const DEFAULT_NEXT = '/';
 
 /**
  * The page to come back to after signing in. Only a path of this site is accepted, never an address:

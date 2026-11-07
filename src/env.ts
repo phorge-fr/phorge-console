@@ -1,6 +1,6 @@
 import { defineEnvVars } from '@sveltejs/kit/env';
 
-// Optional on purpose: without them the console answers 503 and the showcase site is not affected.
+// Optional on purpose: without them the console answers 503.
 const optional = (value: string | undefined) => (value ? value : undefined);
 
 export const variables = defineEnvVars({

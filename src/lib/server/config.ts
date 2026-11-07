@@ -12,7 +12,7 @@ export type Config = {
 
 /**
  * The settings of the sign-in and of the API client, read from the environment.
- * Returns undefined when one of the issuer, the client id and the API address is missing (the secret is optional): the console then answers 503 and the showcase site is not affected.
+ * Returns undefined when one of the issuer, the client id and the API address is missing (the secret is optional): the console then answers 503.
  */
 export function getConfig(): Config | undefined {
     if (!OIDC_ISSUER || !OIDC_CLIENT_ID || !API_URL) return undefined;

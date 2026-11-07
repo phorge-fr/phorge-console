@@ -10,7 +10,7 @@ What the console reads from its environment, what it serves for signing in, and 
 
 ## Environment variables
 
-The issuer, the client id and the API address are needed. When one is missing, every page of the console answers `503` and the showcase site is not affected. The client secret is optional, see [Client type](#client-type).
+The issuer, the client id and the API address are needed. When one is missing, every page of the console answers `503`, except the probe `/healthz`. The client secret is optional, see [Client type](#client-type).
 
 | Variable | Meaning |
 | --- | --- |
@@ -26,12 +26,16 @@ The adapter derives the address of the application from the request: the protoco
 | Route | What it does |
 | --- | --- |
 | `GET /healthz` | The probe of the container: `200 ok` when the server is up. It needs no setting and calls neither Authentik nor the API. |
-| `GET /login` | Starts the sign-in and sends the browser to Authentik. `next` is the page to come back to: a path of this site, otherwise `/account`. |
+| `GET /login` | Starts the sign-in and sends the browser to Authentik. `next` is the page to come back to: a path of this site, otherwise `/tenants`. |
 | `GET /oidc/callback` | Where Authentik sends the browser back. Checks the answer, opens the session and goes to the page asked for. |
 | `POST /logout` | Ends the session, then ends the one at Authentik and comes back to `/`. `GET` is refused. |
+| `/` | The home of the console: the tenants the person can see (`GET /v1/tenants`). `/tenants` redirects to it. |
+| `/t/<tenant>` | One tenant (`GET /v1/tenants/<tenant>`): its state, its plan and its owner. `/t/<tenant>/images`, `/instances` and `/members` are the views of the tenant; they are not built yet. A name that is not a valid tenant name is a `404` without calling the API. |
+| `GET /switch` | The tenant switcher: goes to the same section of the tenant given in `tenant`. Only a valid tenant name and a known section are used to build the address. |
+| `/api-keys` | The keys of the person; not built yet. |
 | `/account` | The signed-in person, as the API sees them (`GET /v1/whoami`). |
 
-Every page except the showcase site needs a signed-in person; without one the browser is sent to `/login`.
+Every page needs a signed-in person; without one the browser is sent to `/login`, and back to the same page after.
 
 ## Address to register in Authentik
 
@@ -79,5 +83,5 @@ Both are `HttpOnly`, `SameSite=Lax`, `Secure` outside the development server, an
 
 ## Headers
 
-- `X-Robots-Tag: noindex` on every page rendered by the server. The prerendered showcase pages are served as files and do not carry it.
+- `X-Robots-Tag: noindex` on every page rendered by the server.
 - `Cache-Control: no-store` when a session is open.

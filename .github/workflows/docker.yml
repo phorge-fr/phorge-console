@@ -44,10 +44,10 @@ jobs:
                     sleep 1
                   done
                   curl -fsS http://127.0.0.1:3000/healthz
-                  curl -fsS http://127.0.0.1:3000/ | grep -qi '<html'
-                  # Without the sign-in settings the console answers 503 and the showcase site is not affected.
+                  # Without the sign-in settings every page of the console answers 503, and none is indexed.
+                  test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/)" = "503"
                   test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/account)" = "503"
-                  curl -sI http://127.0.0.1:3000/account | grep -qi '^x-robots-tag: noindex'
+                  curl -sI http://127.0.0.1:3000/ | grep -qi '^x-robots-tag: noindex'
                   docker stop console
                   test "$(docker inspect -f '{{.State.ExitCode}}' console)" -eq 0
 
