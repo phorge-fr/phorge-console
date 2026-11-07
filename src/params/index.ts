@@ -5,7 +5,11 @@ import { defineParams } from '@sveltejs/kit/params';
 /** The name of a tenant, as the Phorge API accepts it (`^[a-z][a-z0-9-]{1,27}$`). */
 export const TENANT_NAME = /^[a-z][a-z0-9-]{1,27}$/;
 
-// The param matchers of the routes. `[tenant=tenant]`: a name the API could not have given is a 404 without calling the API.
+/** The name of an instance, as the Phorge API accepts it (`^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$`). */
+export const INSTANCE_NAME = /^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/;
+
+// The param matchers of the routes. `[tenant=tenant]`, `[name=instance]`: a name the API could not have given is a 404 without calling the API.
 export const params = defineParams({
-    tenant: (param) => (TENANT_NAME.test(param) ? param : undefined)
+    tenant: (param) => (TENANT_NAME.test(param) ? param : undefined),
+    instance: (param) => (INSTANCE_NAME.test(param) ? param : undefined)
 });
