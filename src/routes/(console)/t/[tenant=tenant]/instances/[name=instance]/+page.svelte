@@ -1,4 +1,5 @@
 <script lang="ts">
+    import LoaderCircle from '@lucide/svelte/icons/loader-circle';
     import Play from '@lucide/svelte/icons/play';
     import Square from '@lucide/svelte/icons/square';
     import Alert from '#lib/components/Alert.svelte';
@@ -39,32 +40,35 @@
         {/snippet}
         {#snippet actions()}
             {#if instance.phase === 'Ready'}
-                <form method="POST" action="?/power">
-                    <input type="hidden" name="running" value={String(!instance.running)} />
-                    {#if instance.running}
-                        <button type="submit" class="btn-secondary">
-                            <Square size={14} aria-hidden="true" />
-                            Stop
-                        </button>
-                    {:else}
-                        <button type="submit" class="btn-primary">
-                            <Play size={14} aria-hidden="true" />
-                            Start
-                        </button>
-                    {/if}
-                </form>
+                {#if instance.transition}
+                    <!-- A change is under way: the button cannot be used until the machine is where it was asked to be. -->
+                    <button type="button" class="btn-secondary" disabled aria-busy="true">
+                        <LoaderCircle size={14} class="animate-spin" aria-hidden="true" />
+                        {instance.transition === 'starting' ? 'Starting…' : 'Stopping…'}
+                    </button>
+                {:else}
+                    <form method="POST" action="?/power">
+                        <input type="hidden" name="running" value={String(!instance.running)} />
+                        {#if instance.running}
+                            <button type="submit" class="btn-secondary">
+                                <Square size={14} aria-hidden="true" />
+                                Stop
+                            </button>
+                        {:else}
+                            <button type="submit" class="btn-primary">
+                                <Play size={14} aria-hidden="true" />
+                                Start
+                            </button>
+                        {/if}
+                    </form>
+                {/if}
             {/if}
         {/snippet}
     </PageHeader>
 
     <div class="mb-8 flex flex-col gap-3" hidden={!notices}>
         {#if form?.power?.message}
-            <Alert
-                tone="warning"
-                title="The machine was not {instance.running ? 'stopped' : 'started'}"
-            >
-                {form.power.message}
-            </Alert>
+            <Alert tone="info" title="Not yet">{form.power.message}</Alert>
         {/if}
         {#if instance.problems}
             <Alert tone="danger" title="What is wrong">{instance.problems}</Alert>
