@@ -1,5 +1,5 @@
 import { error, isHttpError, redirect } from '@sveltejs/kit';
-import { loginPath } from '#lib/server/api';
+import { loginPath, whoami } from '#lib/server/api';
 import { getConfig } from '#lib/server/config';
 import { listTenants } from '#lib/server/tenants';
 import type { LayoutServerLoad } from './$types';
@@ -13,11 +13,14 @@ export const load: LayoutServerLoad = async (event) => {
     // goes through, any other failure becomes a notice and the page that needs the API says so itself.
     let tenants;
     let notice: string | undefined;
-    try {
-        tenants = await listTenants(event);
-    } catch (e) {
-        if (!isHttpError(e)) throw e;
-        notice = e.body.message;
-    }
-    return { user: event.locals.session.user, tenants, notice };
+    // Who the API takes the person for decides what is offered: creating, resizing and deleting tenants is for platform
+    // administrators. This only hides what would be refused; the API refuses it either way.
+    let platformAdmin = false;
+    const [tenantsResult, identity] = await Promise.allSettled([listTenants(event), whoami(event)]);
+    if (tenantsResult.status === 'fulfilled') tenants = tenantsResult.value;
+    else if (isHttpError(tenantsResult.reason)) notice = tenantsResult.reason.body.message;
+    else throw tenantsResult.reason;
+    if (identity.status === 'fulfilled') platformAdmin = identity.value.platformAdmin === true;
+    else if (!isHttpError(identity.reason)) throw identity.reason;
+    return { user: event.locals.session.user, tenants, notice, platformAdmin };
 };

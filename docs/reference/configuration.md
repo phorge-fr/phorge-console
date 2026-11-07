@@ -30,7 +30,9 @@ The adapter derives the address of the application from the request: the protoco
 | `GET /oidc/callback` | Where Authentik sends the browser back. Checks the answer, opens the session and goes to the page asked for. |
 | `POST /logout` | Ends the session, then ends the one at Authentik and comes back to `/`. `GET` is refused. |
 | `/` | The home of the console: the tenants the person can see (`GET /v1/tenants`). `/tenants` redirects to it. |
-| `/t/<tenant>` | One tenant (`GET /v1/tenants/<tenant>`): its state, its plan and its owner. `/t/<tenant>/images`, `/instances` and `/members` are the views of the tenant; they are not built yet. A name that is not a valid tenant name is a `404` without calling the API. |
+| `/t/<tenant>` | One tenant (`GET /v1/tenants/<tenant>`): its state, its plan and its owner. A platform administrator can change the plan and the display name (`PATCH`) and delete the tenant (`DELETE`, after typing its name). `/t/<tenant>/images`, `/instances` and `/members` are the views of the tenant; they are not built yet. A name that is not a valid tenant name is a `404` without calling the API. |
+| `/new` | Create a tenant (`POST /v1/tenants`): name, display name, owner and plan. Platform administrators only; the person is then sent to the page of the new tenant, which follows it until it is `Ready`. |
+| `GET /t/<tenant>/status` | The state of a tenant as JSON (`phase`, `problems`, or `gone`), which the page of a tenant polls while it is being made or deleted. Nothing else leaves through it. |
 | `GET /switch` | The tenant switcher: goes to the same section of the tenant given in `tenant`. Only a valid tenant name and a known section are used to build the address. |
 | `/api-keys` | The keys of the person; not built yet. |
 | `/account` | The signed-in person, as the API sees them (`GET /v1/whoami`). |
