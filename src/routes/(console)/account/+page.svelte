@@ -1,4 +1,8 @@
 <script lang="ts">
+    import LogOut from '@lucide/svelte/icons/log-out';
+    import PageHeader from '#lib/components/PageHeader.svelte';
+    import SettingsSection from '#lib/components/SettingsSection.svelte';
+
     let { data } = $props();
 </script>
 
@@ -6,26 +10,31 @@
     <title>Account · Phorge console</title>
 </svelte:head>
 
-<main class="mx-auto max-w-3xl px-4 py-12">
-    <h1 class="text-3xl font-bold">Account</h1>
+<main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
+    <PageHeader title="Account" />
 
-    <dl class="mt-8 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-3">
-        <dt class="text-muted">Signed in as</dt>
-        <dd class="font-semibold">{data.user.name ?? data.user.email}</dd>
-        <dt class="text-muted">Email</dt>
-        <dd>{data.identity.email ?? data.user.email}</dd>
-        <dt class="text-muted">Identity</dt>
-        <dd class="font-mono">{data.identity.subject}</dd>
-        <dt class="text-muted">Role</dt>
-        <dd>{data.identity.platformAdmin ? 'Platform administrator' : 'User'}</dd>
-    </dl>
+    <SettingsSection title="Profile" description="The account you are signed in with.">
+        <dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-8 gap-y-3">
+            <dt class="text-fg-3">Name</dt>
+            <dd class="font-semibold">{data.user.name ?? data.user.email}</dd>
+            <dt class="text-fg-3">Email</dt>
+            <dd class="break-words">{data.identity.email ?? data.user.email}</dd>
+            <dt class="text-fg-3">Role</dt>
+            <dd>{data.identity.platformAdmin ? 'Platform administrator' : 'User'}</dd>
+            <dt class="text-fg-3">Identity</dt>
+            <dd class="font-mono text-sm break-all text-fg-2">{data.identity.subject}</dd>
+        </dl>
+    </SettingsSection>
 
-    <form method="POST" action="/logout" class="mt-10">
-        <button
-            type="submit"
-            class="cursor-pointer rounded border border-accent bg-surface px-5 py-2 font-semibold text-fg"
-        >
-            Sign out
-        </button>
-    </form>
+    <SettingsSection
+        title="Session"
+        description="Signing out ends your session here and at Phorge."
+    >
+        <form method="POST" action="/logout">
+            <button type="submit" class="btn-secondary">
+                <LogOut size={16} aria-hidden="true" />
+                Sign out
+            </button>
+        </form>
+    </SettingsSection>
 </main>

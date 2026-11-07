@@ -66,6 +66,6 @@ export const actions: Actions = {
         if (result.ok === false)
             return fail(result.status, { remove: { message: result.message } });
         // The instance stays, `Deleting`, until it is gone: the list follows it.
-        redirect(303, `/t/${event.params.tenant}/instances`);
+        redirect(303, `/t/${event.params.tenant}/instances?deleted=${name}`);
     }
 };
