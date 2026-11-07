@@ -25,6 +25,7 @@ The adapter derives the address of the application from the request: the protoco
 
 | Route | What it does |
 | --- | --- |
+| `GET /healthz` | The probe of the container: `200 ok` when the server is up. It needs no setting and calls neither Authentik nor the API. |
 | `GET /login` | Starts the sign-in and sends the browser to Authentik. `next` is the page to come back to: a path of this site, otherwise `/account`. |
 | `GET /oidc/callback` | Where Authentik sends the browser back. Checks the answer, opens the session and goes to the page asked for. |
 | `POST /logout` | Ends the session, then ends the one at Authentik and comes back to `/`. `GET` is refused. |
@@ -51,6 +52,21 @@ The console works with both, and the secret decides:
 - **With `OIDC_CLIENT_SECRET`**, it is a confidential client. The secret goes in the `Authorization` header (`client_secret_basic`), on top of PKCE.
 
 A secret set for a public client, or missing for a confidential one, makes the token endpoint refuse the code: the sign-in fails with `401` and the reason is in the log.
+
+## Container image
+
+The `Dockerfile` builds the Node server with the Node version of `.nvmrc` and runs it on a distroless Node image, for `linux/amd64` and `linux/arm64`. The `docker` workflow checks it on every pull request and publishes it to `ghcr.io/phorge-fr/phorge-console`, tagged `sha-<commit>` and `latest`, on a push to `main`.
+
+| Setting | Value |
+| --- | --- |
+| User | `65532:65532`, no shell, no package manager |
+| Port | `3000`, from `PORT` (and `HOST`, default `0.0.0.0`) |
+| Probe | `GET /healthz` |
+| Writes | None: it runs with a read-only root filesystem and no capability |
+| Secrets | None in the image; the settings above are given at run time |
+| Stop | `SIGTERM` ends the server and the exit code is `0` |
+
+The sessions live in the memory of the process: run one replica, and a restart signs everyone out.
 
 ## What the browser holds
 
