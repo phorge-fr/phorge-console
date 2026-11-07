@@ -10,13 +10,13 @@ What the console reads from its environment, what it serves for signing in, and 
 
 ## Environment variables
 
-All four are needed. When one is missing, every page of the console answers `503` and the showcase site is not affected.
+The issuer, the client id and the API address are needed. When one is missing, every page of the console answers `503` and the showcase site is not affected. The client secret is optional, see [Client type](#client-type).
 
 | Variable | Meaning |
 | --- | --- |
-| `OIDC_ISSUER` | The issuer of the console application in Authentik, `https://<host>/application/o/<slug>/`. It must be `https`, except in the development server. |
-| `OIDC_CLIENT_ID` | The client id of the confidential client of the console. |
-| `OIDC_CLIENT_SECRET` | The client secret. It reaches the server only, through a Kubernetes Secret. |
+| `OIDC_ISSUER` | The issuer of the application of the client in Authentik, `https://<host>/application/o/<slug>/`. It must be `https`, except in the development server. |
+| `OIDC_CLIENT_ID` | The client id of the OIDC client the console signs in with. |
+| `OIDC_CLIENT_SECRET` | Optional. The client secret of a confidential client. Leave it unset for a public client. It reaches the server only, through a Kubernetes Secret. |
 | `API_URL` | The base URL of the Phorge API, such as `https://api.phorge.fr`. |
 
 The adapter derives the address of the application from the request: the protocol is `https` unless `PROTOCOL_HEADER` names a header that says otherwise, and the host is the `Host` header or the one named by `HOST_HEADER`. Behind a proxy that keeps the original `Host`, nothing more is needed. The sign-in redirect address and the cross-site check of forms are built from this address.
@@ -39,9 +39,18 @@ Every page except the showcase site needs a signed-in person; without one the br
 | Redirect URI | `https://console.phorge.fr/oidc/callback`, strict matching |
 | Post-logout redirect URI | `https://console.phorge.fr/` |
 | Scopes | `openid`, `email`, `profile`, `offline_access` |
-| Client type | Confidential, authorization code with PKCE (`S256`) and refresh token |
+| Client type | Public or confidential, authorization code with PKCE (`S256`) and refresh token |
 
-The token endpoint is called with the secret in the `Authorization` header (`client_secret_basic`). The API checks the `aud` of the access token, so the client id of the console must be one of the audiences the API accepts.
+The API checks the issuer and the `aud` of the access token, so the issuer and the client id must be the ones the API accepts.
+
+### Client type
+
+The console works with both, and the secret decides:
+
+- **Without `OIDC_CLIENT_SECRET`**, it is a public client. The token endpoint is called with the client id only (`none`) and PKCE binds the code to the browser that started the sign-in. This is what the shared client of the command line is, and the one the console is deployed with.
+- **With `OIDC_CLIENT_SECRET`**, it is a confidential client. The secret goes in the `Authorization` header (`client_secret_basic`), on top of PKCE.
+
+A secret set for a public client, or missing for a confidential one, makes the token endpoint refuse the code: the sign-in fails with `401` and the reason is in the log.
 
 ## What the browser holds
 

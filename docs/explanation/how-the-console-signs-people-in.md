@@ -13,7 +13,7 @@ The console is rendered on the server, and the person who uses it signs in with 
 1. A person asks for a page of the console without a session. The server sends them to `/login`.
 2. `/login` makes a random `state`, a `nonce` and a PKCE verifier, keeps them in the memory of the server, and sets a cookie with a random identifier that points at them. It then sends the browser to Authentik, with the PKCE challenge.
 3. The person signs in at Authentik, which sends the browser back to `/oidc/callback` with a code.
-4. The callback takes the sign-in of this browser, once, checks the `state` and the `nonce`, exchanges the code and the PKCE verifier for tokens with the client secret, and checks the signature and the claims of the ID token.
+4. The callback takes the sign-in of this browser, once, checks the `state` and the `nonce`, exchanges the code and the PKCE verifier for tokens (with the client secret when the client has one), and checks the signature and the claims of the ID token.
 5. It opens a session in the memory of the server with the tokens and the person's email, and sets the session cookie, which holds only an identifier. The identifier is new at every sign-in.
 6. When a page needs the API, the server calls it with the access token of the session. The browser only receives the result.
 
@@ -23,7 +23,7 @@ The decision [0009](https://github.com/phorge-fr/Hangar/blob/main/docs/decisions
 
 ## The API judges the person, not the console
 
-The access token is the person's. The API checks it and decides with OpenFGA what the person may do, so the console holds no right of its own and cannot do more than the person can. The `aud` of the token is the client id of the console, so the API has to accept it next to the shared client of the command line.
+The access token is the person's. The API checks it and decides with OpenFGA what the person may do, so the console holds no right of its own and cannot do more than the person can. The `iss` and the `aud` of the token are those of the client the console signs in with. The console uses the shared client of the command line, a public one, so the API accepts its tokens as it does the command line's.
 
 ## What goes wrong, and what the person sees
 
