@@ -12,7 +12,8 @@ export const variables = defineEnvVars({
     OIDC_CLIENT_ID: { schema: optional, description: 'Client id of the console in Authentik' },
     OIDC_CLIENT_SECRET: {
         schema: optional,
-        description: 'Client secret of the console in Authentik'
+        description:
+            'Client secret of the console in Authentik. Leave it unset for a public client, which relies on PKCE alone'
     },
     API_URL: { schema: optional, description: 'Base URL of the Phorge API' }
 });

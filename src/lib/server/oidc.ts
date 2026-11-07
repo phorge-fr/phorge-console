@@ -14,12 +14,13 @@ async function oidcConfig(cfg: Config): Promise<client.Configuration> {
     const issuer = new URL(cfg.issuer);
     // Plain HTTP is only accepted by the development server, for a local identity provider.
     if (issuer.protocol !== 'https:' && !dev) throw new Error('OIDC_ISSUER must be an https URL');
-    // The secret goes in the Authorization header (client_secret_basic), the default of OpenID Connect.
+    // A confidential client sends its secret in the Authorization header (client_secret_basic), the default of OpenID
+    // Connect. A public client, like the shared one of the command line, has none: it sends its client id only and relies on PKCE.
     const config = await client.discovery(
         issuer,
         cfg.clientId,
         undefined,
-        client.ClientSecretBasic(cfg.clientSecret),
+        cfg.clientSecret ? client.ClientSecretBasic(cfg.clientSecret) : client.None(),
         dev ? { execute: [client.allowInsecureRequests] } : undefined
     );
     cached = { key, config };
