@@ -1,30 +1,31 @@
 <script lang="ts">
-    import { PLANS } from '#lib/plans';
+    import Alert from '#lib/components/Alert.svelte';
+    import PageHeader from '#lib/components/PageHeader.svelte';
+    import PlanPicker from '#lib/components/PlanPicker.svelte';
 
     let { data, form } = $props();
 
     const id = $props.id();
-    const field = 'rounded border border-accent bg-bg px-3 py-2 text-fg';
 </script>
 
 <svelte:head>
     <title>New tenant · Phorge console</title>
 </svelte:head>
 
-<main class="mx-auto max-w-2xl px-4 py-8">
-    <h1 class="text-3xl font-bold">New tenant</h1>
-    <p class="mt-3 text-muted">
-        A tenant is a space with its own quota, images, virtual machines and members. It takes about
-        a minute to be made.
-    </p>
+<main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
+    <PageHeader
+        title="New tenant"
+        subtitle="A space with its own quota, images, virtual machines and members. It takes about a minute to be made."
+        back={{ href: '/', label: 'All tenants' }}
+    />
 
-    {#if form?.message}
-        <p role="alert" class="mt-6 rounded border-2 border-fg bg-surface p-4">{form.message}</p>
-    {/if}
+    <form method="POST" class="flex max-w-xl flex-col gap-6">
+        {#if form?.message}
+            <Alert tone="danger">{form.message}</Alert>
+        {/if}
 
-    <form method="POST" class="mt-6 flex flex-col gap-5">
-        <div class="flex flex-col gap-1">
-            <label for="{id}-name" class="font-semibold">Name</label>
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-name" class="field-label">Name</label>
             <input
                 id="{id}-name"
                 name="name"
@@ -34,75 +35,50 @@
                 autocomplete="off"
                 autocapitalize="off"
                 spellcheck="false"
-                class="{field} max-w-sm font-mono"
+                class="field max-w-sm font-mono"
                 aria-describedby="{id}-name-help"
             />
-            <p id="{id}-name-help" class="text-sm text-muted">
-                It is in the addresses and cannot change: 2 to 28 lowercase letters, digits or
+            <p id="{id}-name-help" class="help">
+                In the addresses, and it cannot change. 2 to 28 lowercase letters, digits or
                 hyphens, starting with a letter.
             </p>
         </div>
 
-        <div class="flex flex-col gap-1">
-            <label for="{id}-display" class="font-semibold">Display name (optional)</label>
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-display" class="field-label">
+                Display name <span class="font-normal text-fg-3">(optional)</span>
+            </label>
             <input
                 id="{id}-display"
                 name="displayName"
                 maxlength="100"
                 value={form?.values?.displayName ?? ''}
-                class="{field} max-w-md"
+                class="field max-w-md"
             />
         </div>
 
-        <div class="flex flex-col gap-1">
-            <label for="{id}-owner" class="font-semibold">Owner</label>
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-owner" class="field-label">Owner</label>
             <input
                 id="{id}-owner"
                 name="owner"
                 type="email"
                 required
                 value={form?.values?.owner ?? data.owner}
-                class="{field} max-w-md"
+                class="field max-w-md"
                 aria-describedby="{id}-owner-help"
             />
-            <p id="{id}-owner-help" class="text-sm text-muted">
+            <p id="{id}-owner-help" class="help">
                 The email of the owner, exactly as it is in Authentik (capitals included). The owner
                 is an administrator of the tenant and cannot change.
             </p>
         </div>
 
-        <fieldset class="flex flex-col gap-2 border-0 p-0">
-            <legend class="font-semibold">Plan</legend>
-            {#each Object.entries(PLANS) as [plan, quota] (plan)}
-                <label class="flex items-start gap-3 rounded border border-accent bg-surface p-3">
-                    <input
-                        type="radio"
-                        name="plan"
-                        value={plan}
-                        required
-                        checked={(form?.values?.plan ?? 'small') === plan}
-                        class="mt-1"
-                    />
-                    <span>
-                        <strong>{plan}</strong>
-                        <span class="block text-muted">
-                            {quota.instances}
-                            {quota.instances === 1 ? 'VM' : 'VMs'}, {quota.vcpu} vCPU, {quota.memoryGiB}
-                            GiB of memory, {quota.diskGiB} GiB of disk, {quota.networks}
-                            {quota.networks === 1 ? 'network' : 'networks'}
-                        </span>
-                    </span>
-                </label>
-            {/each}
-        </fieldset>
+        <PlanPicker selected={form?.values?.plan ?? 'small'} />
 
-        <div class="flex flex-wrap items-center gap-4">
-            <button
-                type="submit"
-                class="cursor-pointer rounded bg-primary px-5 py-2 font-semibold text-on-primary"
-                >Create the tenant</button
-            >
-            <a href="/">Cancel</a>
+        <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="btn-primary">Create the tenant</button>
+            <a href="/" class="btn-ghost">Cancel</a>
         </div>
     </form>
 </main>

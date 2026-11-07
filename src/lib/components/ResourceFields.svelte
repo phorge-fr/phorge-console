@@ -1,7 +1,8 @@
 <script lang="ts">
     import { LIMITS, type Resource } from '#lib/instances';
 
-    // The CPU, the memory and the disk of a virtual machine, with the limits of the API. Used to create an instance and to resize it.
+    // The CPU, the memory and the disk of a virtual machine, with the limits of the API. Used to create an instance with a custom
+    // size and to resize one.
     let {
         values,
         hint
@@ -12,19 +13,18 @@
     } = $props();
 
     const id = $props.id();
-    const field = 'w-32 rounded border border-accent bg-bg px-3 py-2 text-fg';
     const rows: { name: Resource; label: string; unit: string }[] = [
-        { name: 'cpu', label: 'vCPU', unit: '' },
+        { name: 'cpu', label: 'vCPU', unit: 'cores' },
         { name: 'memoryMiB', label: 'Memory', unit: 'MiB' },
         { name: 'diskGiB', label: 'Disk', unit: 'GiB' }
     ];
 </script>
 
-<div class="flex flex-wrap gap-5">
+<div class="grid gap-4 sm:grid-cols-3">
     {#each rows as row (row.name)}
-        <div class="flex flex-col gap-1">
-            <label for="{id}-{row.name}" class="font-semibold">{row.label}</label>
-            <div class="flex items-center gap-2">
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-{row.name}" class="field-label">{row.label}</label>
+            <div class="relative">
                 <input
                     id="{id}-{row.name}"
                     name={row.name}
@@ -35,15 +35,18 @@
                     step="1"
                     value={values[row.name]}
                     placeholder={String(LIMITS[row.name].default)}
-                    class={field}
+                    class="field tnum pr-14"
                     aria-describedby="{id}-{row.name}-help"
                 />
-                {#if row.unit}<span class="text-muted">{row.unit}</span>{/if}
+                <span
+                    class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-fg-3"
+                    aria-hidden="true">{row.unit}</span
+                >
             </div>
-            <p id="{id}-{row.name}-help" class="text-sm text-muted">
+            <p id="{id}-{row.name}-help" class="help tnum">
                 {LIMITS[row.name].min} to {LIMITS[row.name].max}
             </p>
         </div>
     {/each}
 </div>
-{#if hint}<p class="mt-2 text-sm text-muted">{hint}</p>{/if}
+{#if hint}<p class="help mt-3">{hint}</p>{/if}

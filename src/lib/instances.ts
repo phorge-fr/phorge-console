@@ -61,3 +61,20 @@ export function readNumber(
 /** What Incus reports and what the VM is doing, in one phrase: `Running`, `Stopped`, `Stopped, starting`. Empty until the VM exists. */
 export const describeState = (instance: { state?: string; transition?: 'starting' | 'stopping' }) =>
     [instance.state, instance.transition].filter(Boolean).join(', ');
+
+/** What a set of instances uses, in the units of a plan. Stopped machines count, as they do for the quota of the platform. */
+export const usageOf = (instances: { cpu: number; memoryMiB: number; diskGiB: number }[]) => ({
+    instances: instances.length,
+    vcpu: instances.reduce((sum, i) => sum + i.cpu, 0),
+    memoryGiB: instances.reduce((sum, i) => sum + i.memoryMiB, 0) / 1024,
+    diskGiB: instances.reduce((sum, i) => sum + i.diskGiB, 0)
+});
+
+/** The ready-made sizes of the creation form. The details stay available for those who want them. */
+export const SIZES = {
+    light: { label: 'Light', cpu: 1, memoryMiB: 1024, diskGiB: 10 },
+    standard: { label: 'Standard', cpu: 2, memoryMiB: 2048, diskGiB: 20 },
+    heavy: { label: 'Heavy', cpu: 4, memoryMiB: 4096, diskGiB: 40 }
+} as const;
+
+export type SizeName = keyof typeof SIZES;

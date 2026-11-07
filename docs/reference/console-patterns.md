@@ -52,7 +52,7 @@ Nothing is deleted by one click. `ConfirmDelete` is the pattern for a tenant, an
 3. The person types the exact name. The browser checks it (the field has a `pattern`), but only the server counts: the action of the page must call `isConfirmed(await request.formData(), name)` from `#lib/server/confirm` before it deletes, and answer `400` when it is false.
 4. The submit button names the action ("Delete the tenant").
 
-It is used to delete a tenant. It is a `<details>` and a `POST` form, so it works without JavaScript, and the cross-site check of SvelteKit protects it like every form.
+It is used to delete a tenant and an instance. An image, which is deleted from a list, asks for the confirmation with `?delete=<name>` in the address: the page then shows the panel open above the list, which needs no JavaScript. It is a `<details>` and a `POST` form, so it works without JavaScript, and the cross-site check of SvelteKit protects it like every form.
 
 ```svelte
 <ConfirmDelete

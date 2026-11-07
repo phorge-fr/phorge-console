@@ -1,8 +1,20 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { PLANS, type Plan } from '#lib/plans';
 import { isConfirmed } from '#lib/server/confirm';
+import { listInstances } from '#lib/server/instances';
 import { deleteTenant, patchTenant } from '#lib/server/tenants';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
+
+// What the tenant uses of its quota. The overview is useful without it, so a failure of the API here is not an error page: the
+// usage is left out. A person who has to sign in again still goes to sign in.
+export const load: PageServerLoad = async (event) => {
+    try {
+        return { instances: await listInstances(event, event.params.tenant) };
+    } catch (error) {
+        if (isRedirect(error)) throw error;
+        return { instances: undefined };
+    }
+};
 
 export const actions: Actions = {
     // Change the plan and the display name. The name and the owner cannot change.

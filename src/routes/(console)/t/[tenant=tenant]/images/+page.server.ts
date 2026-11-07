@@ -5,9 +5,15 @@ import { createImage, deleteImage, listImages } from '#lib/server/images';
 import type { Actions, PageServerLoad } from './$types';
 
 // Anybody with a role on the tenant reads the images; pulling and deleting are for operators and administrators, which the API decides.
-export const load: PageServerLoad = async (event) => ({
-    images: await listImages(event, event.params.tenant)
-});
+export const load: PageServerLoad = async (event) => {
+    const images = await listImages(event, event.params.tenant);
+    // `?delete=<image>` asks for the confirmation of a deletion: the page shows it without needing JavaScript.
+    const asked = event.url.searchParams.get('delete');
+    return {
+        images,
+        confirm: images.find((image) => image.name === asked && image.phase !== 'Deleting')?.name
+    };
+};
 
 export const actions: Actions = {
     // Pull an image from the image server. The server is not a choice: the API only allows linuxcontainers.org.
