@@ -1,0 +1,4 @@
+ignored:
+    # The build stages run on the builder's own architecture and produce plain JavaScript: the svc nodes are arm64 and emulating
+    # Node with QEMU would be slow for no gain.
+    - DL3029
