@@ -1,4 +1,4 @@
-/* Global styles: the brand tokens in tokens.css and the typeface of the brand guide. */
+/* Global styles: the tokens in tokens.css and the typeface of the brand guide. */
 @import '@fontsource/source-sans-3/latin-400.css';
 @import '@fontsource/source-sans-3/latin-600.css';
 @import '@fontsource/source-sans-3/latin-700.css';
@@ -6,6 +6,10 @@
 
 :root {
     color-scheme: light;
+    /* The browser parts that no utility class reaches carry the palette too. */
+    accent-color: var(--phorge-primary);
+    scrollbar-color: var(--phorge-control) transparent;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -13,16 +17,51 @@ body {
     background: var(--phorge-bg);
     color: var(--phorge-text);
     font-family: 'Source Sans 3', system-ui, sans-serif;
+    /* An application's density: 15 px, with 14 px for the dense parts (tables, fields). */
+    font-size: 0.9375rem;
     line-height: 1.5;
+}
+
+::selection {
+    background: var(--phorge-primary);
+    color: var(--phorge-on-primary);
+}
+
+h1,
+h2,
+h3 {
+    text-wrap: balance;
 }
 
 a {
     color: var(--phorge-primary);
+    text-underline-offset: 0.2em;
+}
+
+input,
+select,
+textarea,
+button {
+    font: inherit;
+    caret-color: var(--phorge-primary);
+}
+
+/* The numbers of a table and of a quota line up. */
+.tnum {
+    font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {
     outline: 2px solid var(--phorge-accent);
     outline-offset: 2px;
+}
+
+/* A field that is being used shows it, without a second color: the border takes the accent. */
+.field:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    border-color: var(--phorge-accent);
+    outline-offset: 0;
 }
 
 /* The wordmark has a light and a dark file; the one that matches the theme is shown. */
@@ -46,4 +85,14 @@ a {
 
 :root[data-theme='dark'] .logo-dark {
     display: inline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
