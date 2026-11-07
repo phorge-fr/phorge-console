@@ -6,12 +6,9 @@
     import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
-    import SettingsSection from '#lib/components/SettingsSection.svelte';
-    import { IMAGE_NAME_PATTERN, MAX_ALIASES } from '#lib/images';
 
     let { data, form } = $props();
 
-    const id = $props.id();
     // A list that follows what is being pulled or deleted.
     const busy = $derived(
         data.images.some((image) => image.phase === 'Provisioning' || image.phase === 'Deleting')
@@ -31,96 +28,12 @@
         subtitle="The operating systems your virtual machines start from. An image is pulled once from linuxcontainers.org and cannot be changed: to update it, delete it and pull it again."
     >
         {#snippet actions()}
-            <a href="#pull" class="btn-primary">
+            <a href="{base}/new" class="btn-primary">
                 <Plus size={16} aria-hidden="true" />
                 Pull an image
             </a>
         {/snippet}
     </PageHeader>
-
-    <div
-        id="pull"
-        class="mb-10 scroll-mt-6 border-b border-line pb-2 {form?.create
-            ? ''
-            : 'hidden target:block'}"
-    >
-        <SettingsSection
-            title="Pull an image"
-            description="From the public image server. The name is what your virtual machines start from."
-        >
-            {#if form?.create?.message}
-                <div class="mb-5 max-w-xl"><Alert tone="danger">{form.create.message}</Alert></div>
-            {/if}
-            <form method="POST" action="?/create" class="flex max-w-xl flex-col gap-5">
-                <div class="flex flex-col gap-1.5">
-                    <label for="{id}-name" class="field-label">Name</label>
-                    <input
-                        id="{id}-name"
-                        name="name"
-                        required
-                        maxlength="63"
-                        pattern={IMAGE_NAME_PATTERN}
-                        value={form?.create?.values?.name ?? ''}
-                        autocomplete="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                        placeholder="debian"
-                        class="field max-w-sm font-mono"
-                        aria-describedby="{id}-name-help"
-                    />
-                    <p id="{id}-name-help" class="help">
-                        Lowercase letters, digits and hyphens. It cannot change.
-                    </p>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label for="{id}-source" class="field-label">Source</label>
-                    <input
-                        id="{id}-source"
-                        name="source"
-                        required
-                        maxlength="200"
-                        value={form?.create?.values?.source ?? ''}
-                        autocomplete="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                        placeholder="debian/13/cloud"
-                        class="field font-mono"
-                        aria-describedby="{id}-source-help"
-                    />
-                    <p id="{id}-source-help" class="help">
-                        The name of the image on linuxcontainers.org. Choose a <code
-                            class="font-mono">cloud</code
-                        > variant to use SSH keys. An image that does not exist there never becomes ready.
-                    </p>
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                    <label for="{id}-aliases" class="field-label">
-                        Aliases <span class="font-normal text-fg-3">(optional)</span>
-                    </label>
-                    <input
-                        id="{id}-aliases"
-                        name="aliases"
-                        value={form?.create?.values?.aliases ?? ''}
-                        autocomplete="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                        class="field font-mono"
-                        aria-describedby="{id}-aliases-help"
-                    />
-                    <p id="{id}-aliases-help" class="help">
-                        Other names for the image, separated by spaces or commas. {MAX_ALIASES} at most.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button type="submit" class="btn-primary">Pull the image</button>
-                    <a href={base} class="btn-ghost">Cancel</a>
-                </div>
-            </form>
-        </SettingsSection>
-    </div>
 
     {#if form?.remove?.message}
         <div class="mb-6">

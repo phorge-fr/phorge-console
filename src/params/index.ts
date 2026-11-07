@@ -11,5 +11,6 @@ export const INSTANCE_NAME = /^[a-z]([a-z0-9-]{0,61}[a-z0-9])?$/;
 // The param matchers of the routes. `[tenant=tenant]`, `[name=instance]`: a name the API could not have given is a 404 without calling the API.
 export const params = defineParams({
     tenant: (param) => (TENANT_NAME.test(param) ? param : undefined),
-    instance: (param) => (INSTANCE_NAME.test(param) ? param : undefined)
+    // `new` is the creation page of the instances, not an instance.
+    instance: (param) => (INSTANCE_NAME.test(param) && param !== 'new' ? param : undefined)
 });
