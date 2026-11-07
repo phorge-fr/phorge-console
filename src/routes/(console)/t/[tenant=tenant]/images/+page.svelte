@@ -1,7 +1,9 @@
 <script lang="ts">
+    import Plus from '@lucide/svelte/icons/plus';
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
     import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
+    import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
@@ -27,7 +29,14 @@
     <PageHeader
         title="Images"
         subtitle="The operating systems your virtual machines start from. An image is pulled once from linuxcontainers.org and cannot be changed: to update it, delete it and pull it again."
-    />
+    >
+        {#snippet actions()}
+            <a href="#pull" class="btn-primary">
+                <Plus size={16} aria-hidden="true" />
+                Pull an image
+            </a>
+        {/snippet}
+    </PageHeader>
 
     {#if form?.remove?.message}
         <div class="mb-6">
@@ -51,10 +60,12 @@
     {/if}
 
     {#if data.images.length === 0}
-        <p class="mb-2 text-fg-2">
-            No image yet. Pull your first one below: a virtual machine takes a few minutes to be
-            pulled.
-        </p>
+        <EmptyState title="No image yet">
+            <p>
+                An image is the system a virtual machine starts from. It takes a few minutes to be
+                pulled.
+            </p>
+        </EmptyState>
     {:else}
         <div class="panel overflow-hidden">
             <table class="w-full border-collapse text-left">
@@ -128,7 +139,7 @@
 
     <div class="mt-12" id="pull">
         <SettingsSection
-            title={data.images.length === 0 ? 'Pull your first image' : 'Pull an image'}
+            title="Pull an image"
             description="From the public image server. The name is what your virtual machines start from."
         >
             {#if form?.create?.message}
