@@ -1,8 +1,6 @@
 <script lang="ts">
-    import Plus from '@lucide/svelte/icons/plus';
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
-    import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
@@ -62,22 +60,12 @@
     <PageHeader
         title="Instances"
         subtitle="The virtual machines of this tenant, each with its own disk."
-    >
-        {#snippet actions()}
-            <a href="#create" class="btn-primary">
-                <Plus size={16} aria-hidden="true" />
-                Create an instance
-            </a>
-        {/snippet}
-    </PageHeader>
+    />
 
     {#if data.instances.length === 0}
-        <EmptyState title="No instance yet">
-            <p>Create a virtual machine from one of your images. It is ready in about a minute.</p>
-            {#snippet action()}
-                <a href="#create" class="btn-primary">Create an instance</a>
-            {/snippet}
-        </EmptyState>
+        <p class="mb-2 text-fg-2">
+            No instance yet. Create your first one below: it is ready in about a minute.
+        </p>
     {:else}
         <div class="panel overflow-hidden">
             <table class="w-full border-collapse text-left">
@@ -148,7 +136,9 @@
 
     <div class="mt-12" id="create">
         <SettingsSection
-            title="Create an instance"
+            title={data.instances.length === 0
+                ? 'Create your first instance'
+                : 'Create an instance'}
             description="A virtual machine that starts from one of the images of this tenant."
         >
             {#if data.images.length === 0}
