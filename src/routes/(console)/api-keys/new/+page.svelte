@@ -1,16 +1,29 @@
 <script lang="ts">
     import Copy from '@lucide/svelte/icons/copy';
+    import { untrack } from 'svelte';
+    import { SvelteSet } from 'svelte/reactivity';
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
-    import { MAX_NAME_LENGTH, SCOPES } from '#lib/apikeys';
+    import { MAX_GRANTS, MAX_NAME_LENGTH, SCOPES } from '#lib/apikeys';
 
     let { data, form } = $props();
 
     const id = $props.id();
     const created = $derived(form?.created);
     const tenants = $derived(data.tenants ?? []);
-    const ticked = (tenant: string, scope: string) =>
-        form?.values?.ticked?.[tenant]?.includes(scope) ?? false;
+    // The tenants chosen for the key, and the search that narrows the list. A tenant that the search hides stays chosen, and is still
+    // sent: the rows are hidden, not removed.
+    const chosen = new SvelteSet<string>();
+    // After a refused submission the page starts from what was sent.
+    untrack(() => form?.values?.tenants?.forEach((name) => chosen.add(name)));
+    let search = $state('');
+    const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
+    const shown = $derived(
+        tenants.filter((t) =>
+            `${t.name} ${label(t)}`.toLowerCase().includes(search.trim().toLowerCase())
+        )
+    );
+    const toggle = (name: string, on: boolean) => (on ? chosen.add(name) : chosen.delete(name));
     // The earliest day a key may expire: tomorrow (the API checks the end of the day against the clock).
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
 
@@ -104,7 +117,7 @@
     {:else}
         <PageHeader
             title="Create an API key"
-            subtitle="A key can never do more than you can. You choose what it may do on each tenant, and until when."
+            subtitle="A key can never do more than you can. You choose what it may do, on which tenants, and until when."
             back={{ href: '/api-keys', label: 'API keys' }}
         />
 
@@ -149,42 +162,100 @@
                 </p>
             </div>
 
-            <fieldset class="m-0 flex min-w-0 flex-col gap-4 border-0 p-0">
+            <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
                 <legend class="field-label mb-1 p-0">What it may do</legend>
+                <div class="grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+                    {#each SCOPES as item (item.scope)}
+                        <label class="flex items-start gap-2.5">
+                            <input
+                                type="checkbox"
+                                name="scope"
+                                value={item.scope}
+                                checked={form?.values?.scopes?.includes(item.scope) ?? false}
+                                class="mt-1"
+                            />
+                            <span>
+                                {item.label}
+                                <span class="block font-mono text-xs text-fg-3">{item.scope}</span>
+                            </span>
+                        </label>
+                    {/each}
+                </div>
+                <p class="help">
+                    Changing instances does not let a key see them: tick both if it needs both.
+                </p>
+            </fieldset>
+
+            <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                <legend class="field-label mb-1 p-0">On which tenants</legend>
                 {#if tenants.length === 0}
                     <Alert tone="info"
                         >You are not in a tenant yet: there is nothing to give a key.</Alert
                     >
-                {/if}
-                {#each tenants as tenant (tenant.name)}
-                    <fieldset class="panel m-0 min-w-0 p-4">
-                        <legend class="px-1 font-semibold"
-                            >{tenant.displayName || tenant.name}</legend
+                {:else}
+                    <div class="flex flex-wrap items-center gap-2">
+                        <label class="sr-only" for="{id}-search">Search the tenants</label>
+                        <input
+                            id="{id}-search"
+                            type="search"
+                            bind:value={search}
+                            placeholder="Search a tenant"
+                            autocomplete="off"
+                            class="field max-w-64"
+                        />
+                        <button
+                            type="button"
+                            class="btn-ghost"
+                            onclick={() => shown.forEach((t) => chosen.add(t.name))}
+                            >{search.trim() ? 'Choose the ones shown' : 'Choose all'}</button
                         >
-                        <div class="mt-1 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-                            {#each SCOPES as item (item.scope)}
-                                <label class="flex items-start gap-2.5">
+                        <button type="button" class="btn-ghost" onclick={() => chosen.clear()}
+                            >Clear</button
+                        >
+                        <span
+                            class="tnum ml-auto text-sm {chosen.size > MAX_GRANTS
+                                ? 'font-semibold text-bad-fg'
+                                : 'text-fg-3'}"
+                            role="status"
+                        >
+                            {chosen.size} of {MAX_GRANTS} chosen
+                        </span>
+                    </div>
+                    <ul
+                        class="panel m-0 max-h-72 list-none overflow-y-auto p-1"
+                        aria-label="Tenants"
+                    >
+                        {#each tenants as tenant (tenant.name)}
+                            <li hidden={!shown.includes(tenant)}>
+                                <label
+                                    class="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-surface"
+                                >
                                     <input
                                         type="checkbox"
-                                        name="scope:{tenant.name}"
-                                        value={item.scope}
-                                        checked={ticked(tenant.name, item.scope)}
-                                        class="mt-1"
+                                        name="tenant"
+                                        value={tenant.name}
+                                        checked={chosen.has(tenant.name)}
+                                        onchange={(e) =>
+                                            toggle(tenant.name, e.currentTarget.checked)}
                                     />
-                                    <span>
-                                        {item.label}
-                                        <span class="block font-mono text-xs text-fg-3"
-                                            >{item.scope}</span
+                                    <span class="min-w-0 flex-1 truncate">{label(tenant)}</span>
+                                    {#if tenant.displayName}
+                                        <span class="font-mono text-xs text-fg-3"
+                                            >{tenant.name}</span
                                         >
-                                    </span>
+                                    {/if}
                                 </label>
-                            {/each}
-                        </div>
-                    </fieldset>
-                {/each}
-                <p class="help">
-                    Changing instances does not let a key see them: tick both if it needs both.
-                </p>
+                            </li>
+                        {/each}
+                        {#if shown.length === 0}
+                            <li class="px-2.5 py-3 text-fg-3">No tenant matches “{search}”.</li>
+                        {/if}
+                    </ul>
+                    <p class="help">
+                        A key covers {MAX_GRANTS} tenants at most. For other rights on other tenants,
+                        make another key.
+                    </p>
+                {/if}
             </fieldset>
 
             <div class="flex flex-wrap items-center gap-3">

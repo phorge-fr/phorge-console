@@ -28,6 +28,14 @@
     const current = $derived(page.params.tenant);
     const section = $derived(page.url.pathname.split('/')[3] ?? '');
     const currentTenant = $derived(tenants?.find((t) => t.name === current));
+    // With many tenants the menu has a search; it narrows the list, nothing else changes.
+    let find = $state('');
+    const SEARCH_FROM = 8;
+    const matching = $derived(
+        (tenants ?? []).filter((t) =>
+            `${t.name} ${t.displayName ?? ''}`.toLowerCase().includes(find.trim().toLowerCase())
+        )
+    );
     const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
     const initial = (text: string) => text.trim().charAt(0).toUpperCase() || '?';
 
@@ -101,8 +109,21 @@
                 <p class="px-2.5 pb-1 pt-1.5 text-xs font-semibold text-fg-3" id="{id}-tenants">
                     Your tenants
                 </p>
+                {#if tenants.length > SEARCH_FROM}
+                    <div class="px-1 pb-1">
+                        <label class="sr-only" for="{id}-find">Search a tenant</label>
+                        <input
+                            id="{id}-find"
+                            type="search"
+                            bind:value={find}
+                            placeholder="Search a tenant"
+                            autocomplete="off"
+                            class="field h-8"
+                        />
+                    </div>
+                {/if}
                 <ul class="m-0 list-none p-0" aria-labelledby="{id}-tenants">
-                    {#each tenants as tenant (tenant.name)}
+                    {#each matching as tenant (tenant.name)}
                         <li>
                             <a
                                 href="/switch?tenant={encodeURIComponent(
@@ -126,6 +147,9 @@
                             </a>
                         </li>
                     {/each}
+                    {#if matching.length === 0}
+                        <li class="px-2.5 py-2 text-sm text-fg-3">No tenant matches “{find}”.</li>
+                    {/if}
                 </ul>
                 {#if platformAdmin}
                     <div class="mt-1 border-t border-line pt-1">

@@ -22,14 +22,17 @@ export const KEY_ID = /^[a-z0-9-]{1,64}$/;
 const SCOPE_NAMES = new Set<string>(SCOPES.map((s) => s.scope));
 export const isScope = (value: string): value is Scope => SCOPE_NAMES.has(value);
 
-/** The grants of a form: the scopes ticked for each tenant (`scope:<tenant>` fields), without the tenants that have none. */
-export function readGrants(form: FormData, tenants: string[]) {
-    const grants: { tenant: string; scopes: Scope[] }[] = [];
-    for (const tenant of tenants) {
-        const scopes = form.getAll(`scope:${tenant}`).map(String).filter(isScope);
-        if (scopes.length > 0) grants.push({ tenant, scopes: [...new Set(scopes)] });
-    }
-    return grants;
+/**
+ * What a form asks for: the same scopes on each chosen tenant (a person who needs other rights on other tenants makes another key).
+ * `tenants` are the ones the person sees, so the names of the form are never trusted; the scopes are the ones the API knows.
+ */
+export function readSelection(form: FormData, seen: string[]) {
+    const known = new Set(seen);
+    const tenants = [...new Set(form.getAll('tenant').map(String))].filter((name) =>
+        known.has(name)
+    );
+    const scopes = [...new Set(form.getAll('scope').map(String))].filter(isScope);
+    return { tenants, scopes, grants: tenants.map((tenant) => ({ tenant, scopes })) };
 }
 
 /**
