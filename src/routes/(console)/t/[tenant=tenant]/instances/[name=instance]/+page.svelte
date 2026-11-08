@@ -99,6 +99,12 @@
                 {instance.cpu} vCPU · {instance.memoryMiB / 1024} GiB of memory · {instance.diskGiB} GiB
                 of disk
             </dd>
+            {#if instance.network}
+                <dt class="text-fg-3">Network</dt>
+                <dd class="font-mono">
+                    <a href="/t/{data.tenant.name}/networks">{instance.network}</a>
+                </dd>
+            {/if}
             <dt class="text-fg-3">Address</dt>
             <dd class="font-mono">{instance.ipv4 ?? '—'}</dd>
             <dt class="text-fg-3">Options</dt>

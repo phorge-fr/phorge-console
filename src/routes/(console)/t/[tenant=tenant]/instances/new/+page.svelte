@@ -35,11 +35,30 @@
         back={{ href: list, label: 'Instances' }}
     />
 
-    {#if data.images.length === 0}
-        <Alert tone="info" title="You need an image first">
-            A virtual machine starts from an image that is ready, and this tenant has none.
-            <a href="/t/{data.tenant.name}/images/new">Pull an image</a>, then come back.
-        </Alert>
+    {#if data.images.length === 0 || data.networks.length === 0}
+        <div class="flex max-w-xl flex-col gap-4">
+            {#if data.images.length === 0}
+                <Alert tone="info" title="You need an image first">
+                    A virtual machine starts from an image that is ready, and this tenant has none.
+                    <a href="/t/{data.tenant.name}/images/new">Pull an image</a>, then come back.
+                </Alert>
+            {/if}
+            {#if data.networks.length === 0}
+                {#if data.networksPending}
+                    <Alert tone="info" title="Your network is not ready yet">
+                        A virtual machine is attached to a network that is ready. See
+                        <a href="/t/{data.tenant.name}/networks">the networks</a>: it takes a few
+                        seconds.
+                    </Alert>
+                {:else}
+                    <Alert tone="info" title="You need a network first">
+                        A virtual machine is attached to a network, and this tenant has none.
+                        <a href="/t/{data.tenant.name}/networks/new">Create a network</a>, then come
+                        back.
+                    </Alert>
+                {/if}
+            {/if}
+        </div>
     {:else}
         {#if full}
             <div class="mb-5 max-w-xl">
@@ -95,6 +114,28 @@
                 </select>
                 <p id="{id}-image-help" class="help">
                     Only the images that are ready. It cannot change.
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label for="{id}-network" class="field-label">Network</label>
+                <select
+                    id="{id}-network"
+                    name="network"
+                    required
+                    class="field max-w-sm font-mono"
+                    aria-describedby="{id}-network-help"
+                >
+                    {#each data.networks as network (network.name)}
+                        <option value={network.name} selected={values?.network === network.name}>
+                            {network.name}
+                        </option>
+                    {/each}
+                </select>
+                <p id="{id}-network-help" class="help">
+                    Only the networks that are ready. It cannot change. <a
+                        href="/t/{data.tenant.name}/networks/new">Create another</a
+                    >.
                 </p>
             </div>
 

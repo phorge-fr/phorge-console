@@ -37,7 +37,7 @@ A view tells the person what happens in plain words, and offers a way out. Colou
 
 ## Forms
 
-Creating something is a page of its own, `…/new` under the list it adds to (`/new` for a tenant, `/t/<tenant>/images/new`, `/t/<tenant>/instances/new`): it has its own address, so that the back button, a link and a reload work, and the list stays a list. The list has the main action in its header. A name that the console uses as a path segment (`new`) is refused for an instance.
+Creating something is a page of its own, `…/new` under the list it adds to (`/new` for a tenant, `/t/<tenant>/images/new`, `/t/<tenant>/networks/new`, `/t/<tenant>/instances/new`): it has its own address, so that the back button, a link and a reload work, and the list stays a list. The list has the main action in its header. A name that the console uses as a path segment (`new`) is refused for an instance.
 
 A form posts to an action of its page, and the action calls `apiAction` instead of `apiJson`: what the person can fix (a bad name, a name already taken, a refusal) comes back as a message next to the form, with what they typed kept, and a `403` is explained with the words given for that action. The action checks what it can first, in plain words, and the API checks it all again. After a creation or a deletion the person is redirected to the page that follows the result, never left on a `POST`.
 

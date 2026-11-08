@@ -7,6 +7,7 @@
     import Key from '@lucide/svelte/icons/key-round';
     import Layers from '@lucide/svelte/icons/layers';
     import LogOut from '@lucide/svelte/icons/log-out';
+    import Networks from '@lucide/svelte/icons/network';
     import Overview from '@lucide/svelte/icons/layout-dashboard';
     import Plus from '@lucide/svelte/icons/plus';
     import Users from '@lucide/svelte/icons/users';
@@ -44,6 +45,7 @@
             ? [
                   { href: `/t/${current}`, label: 'Overview', icon: Overview, exact: true },
                   { href: `/t/${current}/images`, label: 'Images', icon: Images },
+                  { href: `/t/${current}/networks`, label: 'Networks', icon: Networks },
                   { href: `/t/${current}/instances`, label: 'Instances', icon: Instances },
                   { href: `/t/${current}/members`, label: 'Members', icon: Users }
               ]

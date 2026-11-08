@@ -6,6 +6,8 @@ export type Instance = {
     name: string;
     /** The image of the tenant it started from. It cannot change. */
     image: string;
+    /** The network of the tenant it is attached to. */
+    network?: string;
     cpu: number;
     memoryMiB: number;
     diskGiB: number;
@@ -31,6 +33,8 @@ export type Instance = {
 export type InstanceCreate = {
     name: string;
     image: string;
+    /** A `Ready` network of the tenant. It can be left out when the tenant has exactly one. */
+    network?: string;
     cpu?: number;
     memoryMiB?: number;
     diskGiB?: number;
@@ -62,8 +66,8 @@ export const getInstance = (event: RequestEvent, tenant: string, name: string) =
     apiJson<Instance>(event, one(tenant, name));
 
 /**
- * The answer is 202: the instance is `Provisioning` for about a minute. The quota of the plan is Incus's, not the request's: a
- * refusal comes back later as the `problems` of the instance, which becomes `Failed` after three minutes.
+ * The answer is 202: the instance is `Provisioning` for about a minute. A limit of the plan is refused at once, with 409
+ * `quota_exceeded` and a message that says which; a network that is not ready is 409 `network_not_ready`.
  */
 export const createInstance = (event: RequestEvent, tenant: string, instance: InstanceCreate) =>
     apiAction<Instance>(event, base(tenant), jsonRequest('POST', instance), NOT_USER);
