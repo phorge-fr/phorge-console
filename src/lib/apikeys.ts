@@ -1,15 +1,44 @@
 /** What the API accepts for an API key (`ApiKeyCreate` and `Scope` of the OpenAPI document), shared by the forms and the actions. */
 
-/** What a key may do on a tenant. `instances:write` does not give `instances:read`: each scope is its own. */
+/**
+ * What a key may do on a tenant, grouped by what it acts on. The form is drawn from this list: a new right of the API is a new line
+ * here, in its group, and appears in every rule. `instances:write` does not give `instances:read`: each scope is its own.
+ */
 export const SCOPES = [
-    { scope: 'tenants:read', label: 'See the tenant' },
-    { scope: 'instances:read', label: 'See the instances' },
-    { scope: 'instances:write', label: 'Create and change instances' },
-    { scope: 'images:read', label: 'See the images' },
-    { scope: 'images:write', label: 'Pull and delete images' },
-    { scope: 'memberships:read', label: 'See the members' },
-    { scope: 'memberships:write', label: 'Add and remove members' }
+    { scope: 'tenants:read', group: 'Tenant', verb: 'See', label: 'See the tenant' },
+    { scope: 'instances:read', group: 'Instances', verb: 'See', label: 'See the instances' },
+    {
+        scope: 'instances:write',
+        group: 'Instances',
+        verb: 'Create and change',
+        label: 'Create and change instances'
+    },
+    { scope: 'images:read', group: 'Images', verb: 'See', label: 'See the images' },
+    {
+        scope: 'images:write',
+        group: 'Images',
+        verb: 'Pull and delete',
+        label: 'Pull and delete images'
+    },
+    { scope: 'memberships:read', group: 'Members', verb: 'See', label: 'See the members' },
+    {
+        scope: 'memberships:write',
+        group: 'Members',
+        verb: 'Add and remove',
+        label: 'Add and remove members'
+    }
 ] as const;
+
+/** The scopes by group, in the order of the list. */
+export const SCOPE_GROUPS = SCOPES.reduce<{ group: string; items: (typeof SCOPES)[number][] }[]>(
+    (groups, item) => {
+        const last = groups.at(-1);
+        if (last?.group === item.group) last.items.push(item);
+        else groups.push({ group: item.group, items: [item] });
+        return groups;
+    },
+    []
+);
 
 export type Scope = (typeof SCOPES)[number]['scope'];
 
@@ -22,17 +51,37 @@ export const KEY_ID = /^[a-z0-9-]{1,64}$/;
 const SCOPE_NAMES = new Set<string>(SCOPES.map((s) => s.scope));
 export const isScope = (value: string): value is Scope => SCOPE_NAMES.has(value);
 
+export const MAX_RULES = 20;
+
 /**
- * What a form asks for: the scopes ticked for each tenant (`scope:<tenant>` fields). Only the tenants the person sees count, so the
- * names of the form are never trusted, and a tenant with nothing ticked is left out.
+ * What a form asks for: rules, each with the scopes ticked and the tenants chosen (`rule.<n>.scope` and `rule.<n>.tenant`). A tenant
+ * that several rules name gets all their scopes: rules add up. Only the tenants the person sees count, so the names of the form are
+ * never trusted, and a rule with no scope or no tenant gives nothing.
  */
-export function readGrants(form: FormData, seen: string[]) {
-    const grants: { tenant: string; scopes: Scope[] }[] = [];
-    for (const tenant of seen) {
-        const scopes = [...new Set(form.getAll(`scope:${tenant}`).map(String).filter(isScope))];
-        if (scopes.length > 0) grants.push({ tenant, scopes });
+export function readRules(form: FormData, seen: string[]) {
+    const known = new Set(seen);
+    const rules: { scopes: Scope[]; tenants: string[] }[] = [];
+    for (let n = 0; n < MAX_RULES; n++) {
+        const scopes = [...new Set(form.getAll(`rule.${n}.scope`).map(String).filter(isScope))];
+        const tenants = [
+            ...new Set(
+                form
+                    .getAll(`rule.${n}.tenant`)
+                    .map(String)
+                    .filter((t) => known.has(t))
+            )
+        ];
+        if (scopes.length > 0 || tenants.length > 0) rules.push({ scopes, tenants });
     }
-    return grants;
+    const byTenant = new Map<string, Set<Scope>>();
+    for (const rule of rules)
+        for (const tenant of rule.tenants) {
+            const set = byTenant.get(tenant) ?? new Set<Scope>();
+            rule.scopes.forEach((scope) => set.add(scope));
+            byTenant.set(tenant, set);
+        }
+    const grants = [...byTenant].map(([tenant, scopes]) => ({ tenant, scopes: [...scopes] }));
+    return { rules, grants };
 }
 
 /**
