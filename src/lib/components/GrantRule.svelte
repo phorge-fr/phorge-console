@@ -1,7 +1,7 @@
 <script lang="ts">
     import X from '@lucide/svelte/icons/x';
     import { SvelteSet } from 'svelte/reactivity';
-    import { SCOPE_GROUPS } from '#lib/apikeys';
+    import { GROUP_HELP, SCOPE_GROUPS } from '#lib/apikeys';
 
     // One rule of an API key: what it may do (the rights ticked) and on which tenants (the ones chosen). The rights come from the
     // list of `#lib/apikeys`, so a new right of the API shows up here without changing this component. The fields are named
@@ -34,35 +34,57 @@
         )
     );
     const byName = $derived(new Map(tenants.map((t) => [t.name, t])));
+
+    // The access of a resource is one choice: none, one of its scopes, or all of them. The names are the ones of the API
+    // (`instances:read`, `instances:write`), so that what is chosen is exactly what the key gets.
+    const optionsOf = (group: string[]) =>
+        group.length === 1 ? group : [...group, group.join(',')];
+    const currentOf = (group: string[]) => {
+        const held = group.filter((scope) => scopes.has(scope));
+        return held.length === 0 ? '' : held.join(',');
+    };
+    const choose = (group: string[], value: string) => {
+        group.forEach((scope) => scopes.delete(scope));
+        if (value) value.split(',').forEach((scope) => scopes.add(scope));
+    };
 </script>
 
 <fieldset class="panel m-0 flex min-w-0 flex-col gap-5 p-4">
     <legend class="px-1 font-semibold">Rule {index + 1}</legend>
 
     <div class="flex flex-col gap-2">
-        <p class="field-label">It may</p>
-        <div class="flex flex-col gap-2">
+        <p class="field-label">Permissions</p>
+        <div class="flex flex-col divide-y divide-line rounded-md border border-line">
             {#each SCOPE_GROUPS as group (group.group)}
-                <div class="flex flex-wrap items-baseline gap-x-5 gap-y-1">
-                    <span class="w-24 shrink-0 text-sm text-fg-3">{group.group}</span>
-                    {#each group.items as item (item.scope)}
-                        <label class="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                name="rule.{index}.scope"
-                                value={item.scope}
-                                checked={scopes.has(item.scope)}
-                                onchange={(e) =>
-                                    e.currentTarget.checked
-                                        ? scopes.add(item.scope)
-                                        : scopes.delete(item.scope)}
-                            />
-                            {item.verb}
-                        </label>
-                    {/each}
+                {@const options = optionsOf(group.items.map((item) => item.scope))}
+                <div
+                    class="grid items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,17rem)]"
+                >
+                    <div>
+                        <label for="{id}-{group.group}" class="font-semibold">{group.group}</label>
+                        <span class="block text-sm text-fg-3">{GROUP_HELP[group.group] ?? ''}</span>
+                    </div>
+                    <select
+                        id="{id}-{group.group}"
+                        class="field font-mono text-sm"
+                        value={currentOf(group.items.map((item) => item.scope))}
+                        onchange={(e) =>
+                            choose(
+                                group.items.map((item) => item.scope),
+                                e.currentTarget.value
+                            )}
+                    >
+                        <option value="">No access</option>
+                        {#each options as option (option)}
+                            <option value={option}>{option.split(',').join(', ')}</option>
+                        {/each}
+                    </select>
                 </div>
             {/each}
         </div>
+        {#each [...scopes] as scope (scope)}
+            <input type="hidden" name="rule.{index}.scope" value={scope} />
+        {/each}
     </div>
 
     <div class="flex flex-col gap-2">

@@ -5,12 +5,10 @@
     import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
-    import { SCOPES } from '#lib/apikeys';
 
     let { data, form } = $props();
 
     const id = $props.id();
-    const labelOf = Object.fromEntries(SCOPES.map((s) => [s.scope, s.label]));
     const keyToRename = $derived(data.keys.find((key) => key.id === data.rename));
     const keyToRevoke = $derived(data.keys.find((key) => key.id === data.revoke));
     const date = (iso: string) =>
@@ -116,13 +114,16 @@
                             <td class="block py-0.5 text-sm md:table-cell md:px-4 md:py-3.5">
                                 <ul class="m-0 flex list-none flex-col gap-1 p-0">
                                     {#each key.grants as grant (grant.tenant)}
-                                        <li class="text-fg-2">
-                                            <span class="font-mono font-semibold text-fg"
+                                        <li class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                            <span class="font-mono font-semibold"
                                                 >{grant.tenant}</span
-                                            >: {grant.scopes
-                                                .map((scope) => labelOf[scope] ?? scope)
-                                                .join(', ')
-                                                .toLowerCase()}
+                                            >
+                                            {#each grant.scopes as scope (scope)}
+                                                <code
+                                                    class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs text-fg-2"
+                                                    >{scope}</code
+                                                >
+                                            {/each}
                                         </li>
                                     {/each}
                                 </ul>

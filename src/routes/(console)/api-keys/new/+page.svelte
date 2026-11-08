@@ -6,7 +6,7 @@
     import Alert from '#lib/components/Alert.svelte';
     import GrantRule from '#lib/components/GrantRule.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
-    import { MAX_GRANTS, MAX_NAME_LENGTH, MAX_RULES } from '#lib/apikeys';
+    import { EXPIRY_DAYS, expiryDay, MAX_GRANTS, MAX_NAME_LENGTH, MAX_RULES } from '#lib/apikeys';
 
     let { data, form } = $props();
 
@@ -27,6 +27,7 @@
                 : [empty()]
         )
     );
+    let expires = $state(untrack(() => form?.values?.expires || '30'));
     const covered = $derived(new Set(rules.flatMap((r) => [...r.chosen])));
     // The earliest day a key may expire: tomorrow (the API checks the end of the day against the clock).
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
@@ -149,25 +150,49 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label for="{id}-expires" class="field-label">Expires on</label>
-                <input
+                <label for="{id}-expires" class="field-label">Expiration</label>
+                <select
                     id="{id}-expires"
                     name="expires"
-                    type="date"
-                    required
-                    min={tomorrow}
-                    value={form?.values?.expires ?? ''}
+                    bind:value={expires}
                     class="field max-w-48"
                     aria-describedby="{id}-expires-help"
-                />
+                >
+                    {#each EXPIRY_DAYS as days (days)}
+                        <option value={String(days)}>{days} days</option>
+                    {/each}
+                    <option value="custom">Custom…</option>
+                </select>
+                {#if expires === 'custom'}
+                    <input
+                        name="expiresOn"
+                        type="date"
+                        required
+                        min={tomorrow}
+                        value={form?.values?.expiresOn ?? ''}
+                        class="field max-w-48"
+                        aria-label="Expiration day"
+                    />
+                {/if}
                 <p id="{id}-expires-help" class="help">
-                    A key always expires, and the date cannot change. The platform may set a
-                    maximum, and says so if you go over it.
+                    {#if expires !== 'custom'}
+                        The key stops working on
+                        <time datetime={expiryDay(Number(expires))}
+                            >{new Date(
+                                `${expiryDay(Number(expires))}T00:00:00Z`
+                            ).toLocaleDateString('en-GB', {
+                                dateStyle: 'long',
+                                timeZone: 'UTC'
+                            })}</time
+                        >.
+                    {/if}
+                    A key always expires and the date cannot change. The platform may set a maximum, and
+                    says so if you go over it.
                 </p>
             </div>
 
             <div class="flex flex-col gap-3">
-                <p class="field-label">What it may do, on which tenants</p>
+                <p class="field-label">Access</p>
                 <noscript>
                     <Alert tone="warning">This form needs JavaScript to choose the tenants.</Alert>
                 </noscript>

@@ -10,11 +10,12 @@ export const actions: Actions = {
     default: async (event) => {
         const form = await event.request.formData();
         const displayName = String(form.get('displayName') ?? '').trim();
-        const day = String(form.get('expires') ?? '').trim();
+        const choice = String(form.get('expires') ?? '');
+        const day = String(form.get('expiresOn') ?? '').trim();
         // The tenants a key may be given rights on are the ones the person sees: the names of the form are not trusted.
         const seen = (await listTenants(event)).map((tenant) => tenant.name);
         const { rules, grants } = readRules(form, seen);
-        const values = { displayName, expires: day, rules };
+        const values = { displayName, expires: choice, expiresOn: day, rules };
         const refuse = (message: string) => fail(400, { values, message });
 
         if (!displayName || displayName.length > MAX_NAME_LENGTH)
@@ -27,7 +28,7 @@ export const actions: Actions = {
             return refuse(
                 `A key covers ${MAX_GRANTS} tenants at most: make another key for the others.`
             );
-        const expiry = readExpiry(day);
+        const expiry = readExpiry(choice, day);
         if ('message' in expiry) return refuse(expiry.message);
 
         const result = await createApiKey(event, {

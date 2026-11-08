@@ -29,6 +29,14 @@ export const SCOPES = [
     }
 ] as const;
 
+/** What each group acts on, in a few words. */
+export const GROUP_HELP: Record<string, string> = {
+    Tenant: 'The tenant itself: its state and its plan',
+    Instances: 'The virtual machines',
+    Images: 'The images virtual machines start from',
+    Members: 'Who holds a role on the tenant'
+};
+
 /** The scopes by group, in the order of the list. */
 export const SCOPE_GROUPS = SCOPES.reduce<{ group: string; items: (typeof SCOPES)[number][] }[]>(
     (groups, item) => {
@@ -84,14 +92,34 @@ export function readRules(form: FormData, seen: string[]) {
     return { rules, grants };
 }
 
+/** The lifetimes offered in the form, in days. A date can be chosen too. The API sets the maximum and says so. */
+export const EXPIRY_DAYS = [7, 30, 60, 90] as const;
+
+const endOfDay = (date: Date) => new Date(`${date.toISOString().slice(0, 10)}T23:59:59Z`);
+
 /**
- * The end of the chosen day, in UTC, as the API wants it, or a sentence that says what is wrong. The API checks that it is in the
- * future and within the maximum lifetime of the deployment, and says so.
+ * When the key expires, from the form: a lifetime in days (counted to the end of that day, in UTC) or a chosen day, or a sentence that
+ * says what is wrong. The API checks that it is in the future and within the maximum lifetime of the deployment, and says so.
  */
-export function readExpiry(day: string): { expiresAt: string } | { message: string } {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { message: 'Choose the day the key expires.' };
-    const end = new Date(`${day}T23:59:59Z`);
-    if (Number.isNaN(end.getTime())) return { message: 'This is not a date.' };
-    if (end.getTime() <= Date.now()) return { message: 'The key must expire in the future.' };
-    return { expiresAt: end.toISOString() };
+export function readExpiry(
+    choice: string,
+    day: string
+): { expiresAt: string } | { message: string } {
+    if (choice === 'custom') {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { message: 'Choose the day the key expires.' };
+        const end = new Date(`${day}T23:59:59Z`);
+        if (Number.isNaN(end.getTime())) return { message: 'This is not a date.' };
+        if (end.getTime() <= Date.now()) return { message: 'The key must expire in the future.' };
+        return { expiresAt: end.toISOString() };
+    }
+    const days = Number(choice);
+    if (!(EXPIRY_DAYS as readonly number[]).includes(days))
+        return { message: 'Choose when the key expires.' };
+    return { expiresAt: endOfDay(new Date(Date.now() + days * 24 * 3600 * 1000)).toISOString() };
 }
+
+/** The day a lifetime ends, to show it before the key is made. */
+export const expiryDay = (days: number) =>
+    endOfDay(new Date(Date.now() + days * 24 * 3600 * 1000))
+        .toISOString()
+        .slice(0, 10);
