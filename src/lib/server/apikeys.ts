@@ -24,7 +24,7 @@ export type ApiKey = {
 export const listApiKeys = async (event: RequestEvent) =>
     (await apiJson<{ items: ApiKey[] }>(event, '/v1/apikeys')).items;
 
-const NOT_ALLOWED = 'Only platform administrators can create API keys for now.';
+const NOT_ALLOWED = 'You are not allowed to create this key.';
 
 /**
  * Creates the service account and answers with the key, once: it is read from the cluster as it is sent and cannot be shown again,

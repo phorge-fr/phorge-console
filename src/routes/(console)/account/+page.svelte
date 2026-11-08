@@ -19,8 +19,6 @@
             <dd class="font-semibold">{data.user.name ?? data.user.email}</dd>
             <dt class="text-fg-3">Email</dt>
             <dd class="break-words">{data.identity.email ?? data.user.email}</dd>
-            <dt class="text-fg-3">Role</dt>
-            <dd>{data.identity.platformAdmin ? 'Platform administrator' : 'User'}</dd>
             <dt class="text-fg-3">Identity</dt>
             <dd class="font-mono text-sm break-all text-fg-2">{data.identity.subject}</dd>
         </dl>

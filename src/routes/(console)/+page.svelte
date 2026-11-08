@@ -27,7 +27,7 @@
         subtitle="A tenant is a space with its own quota, images, virtual machines and members."
     >
         {#snippet actions()}
-            {#if data.platformAdmin}
+            {#if data.canCreateTenants}
                 <a href="/new" class="btn-primary">
                     <Plus size={16} aria-hidden="true" />
                     New tenant
@@ -38,10 +38,14 @@
 
     {#if data.tenants.length === 0}
         <EmptyState title="You are not in a tenant yet">
-            <p>
-                A platform administrator creates a tenant and gives you a role on it. It then shows
-                up here.
-            </p>
+            {#if data.canCreateTenants}
+                <p>
+                    A tenant is your own space: create one to pull images and start virtual
+                    machines.
+                </p>
+            {:else}
+                <p>Somebody has to give you a role on a tenant. It then shows up here.</p>
+            {/if}
         </EmptyState>
     {:else}
         <div class="panel overflow-hidden">

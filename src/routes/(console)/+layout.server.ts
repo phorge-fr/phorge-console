@@ -13,14 +13,15 @@ export const load: LayoutServerLoad = async (event) => {
     // goes through, any other failure becomes a notice and the page that needs the API says so itself.
     let tenants;
     let notice: string | undefined;
-    // Who the API takes the person for decides what is offered: creating, resizing and deleting tenants is for platform
-    // administrators. This only hides what would be refused; the API refuses it either way.
-    let platformAdmin = false;
+    // Who the API takes the person for decides what is offered: whether the person may create a tenant. This only hides what would
+    // be refused; the API refuses it either way.
+    let canCreateTenants = false;
     const [tenantsResult, identity] = await Promise.allSettled([listTenants(event), whoami(event)]);
     if (tenantsResult.status === 'fulfilled') tenants = tenantsResult.value;
     else if (isHttpError(tenantsResult.reason)) notice = tenantsResult.reason.body.message;
     else throw tenantsResult.reason;
-    if (identity.status === 'fulfilled') platformAdmin = identity.value.platformAdmin === true;
+    if (identity.status === 'fulfilled')
+        canCreateTenants = identity.value.canCreateTenants === true;
     else if (!isHttpError(identity.reason)) throw identity.reason;
-    return { user: event.locals.session.user, tenants, notice, platformAdmin };
+    return { user: event.locals.session.user, tenants, notice, canCreateTenants };
 };
