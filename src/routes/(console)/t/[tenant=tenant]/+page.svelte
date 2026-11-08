@@ -6,15 +6,23 @@
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import PlanPicker from '#lib/components/PlanPicker.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
-    import { usageOf } from '#lib/instances';
     import { PLANS } from '#lib/plans';
 
     let { data, form } = $props();
 
     const id = $props.id();
     const tenant = $derived(data.tenant);
-    const plan = $derived(PLANS[tenant.plan]);
-    const usage = $derived(data.instances ? usageOf(data.instances) : undefined);
+    // What the tenant really has, from its quota; the description of the plan stands in when the quota cannot be read.
+    const plan = $derived(
+        data.quota
+            ? {
+                  instances: data.quota.limits.instances,
+                  vcpu: data.quota.limits.vcpu,
+                  memoryGiB: data.quota.limits.memoryMiB / 1024,
+                  diskGiB: data.quota.limits.diskGiB
+              }
+            : PLANS[tenant.plan]
+    );
 </script>
 
 <svelte:head>
@@ -38,16 +46,21 @@
         </div>
     {/if}
 
-    <SettingsSection
-        title="Usage"
-        description="What the virtual machines of this tenant use of its plan."
-    >
-        {#if usage}
+    <SettingsSection title="Usage" description="What this tenant holds of what its plan allows.">
+        {#if data.quota}
+            {@const used = data.quota.used}
+            {@const limits = data.quota.limits}
             <div class="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                <Meter label="Virtual machines" used={usage.instances} total={plan.instances} />
-                <Meter label="vCPU" used={usage.vcpu} total={plan.vcpu} />
-                <Meter label="Memory" used={usage.memoryGiB} total={plan.memoryGiB} unit="GiB" />
-                <Meter label="Disk" used={usage.diskGiB} total={plan.diskGiB} unit="GiB" />
+                <Meter label="Virtual machines" used={used.instances} total={limits.instances} />
+                <Meter label="vCPU" used={used.vcpu} total={limits.vcpu} />
+                <Meter
+                    label="Memory"
+                    used={used.memoryMiB / 1024}
+                    total={limits.memoryMiB / 1024}
+                    unit="GiB"
+                />
+                <Meter label="Disk" used={used.diskGiB} total={limits.diskGiB} unit="GiB" />
+                <Meter label="Networks" used={used.networks} total={limits.networks} />
             </div>
             <p class="help mt-5">
                 Stopped machines count. <a href="/t/{tenant.name}/instances">See the instances</a>

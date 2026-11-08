@@ -82,7 +82,7 @@
                                 {#if plan}
                                     <span class="text-fg-3">
                                         · {plan.instances}
-                                        {plan.instances === 1 ? 'VM' : 'VMs'} · {plan.vcpu} vCPU · {plan.memoryGiB}
+                                        VMs · {plan.vcpu} vCPU · {plan.memoryGiB}
                                         GiB
                                     </span>
                                 {/if}

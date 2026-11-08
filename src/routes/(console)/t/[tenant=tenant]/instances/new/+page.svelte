@@ -2,24 +2,24 @@
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
-    import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS, usageOf } from '#lib/instances';
-    import { PLANS } from '#lib/plans';
+    import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS } from '#lib/instances';
 
     let { data, form } = $props();
 
     const id = $props.id();
     const list = $derived(`/t/${data.tenant.name}/instances`);
-    const plan = $derived(PLANS[data.tenant.plan]);
     const values = $derived(form?.values);
-    const usage = $derived(usageOf(data.instances));
+    const quota = $derived(data.quota);
     // What the plan still has room for, said under the size so that the person knows what fits.
-    const left = $derived({
-        instances: plan.instances - usage.instances,
-        vcpu: plan.vcpu - usage.vcpu,
-        memoryGiB: plan.memoryGiB - usage.memoryGiB,
-        diskGiB: plan.diskGiB - usage.diskGiB
-    });
-    const full = $derived(left.instances <= 0);
+    const left = $derived(
+        quota && {
+            instances: quota.limits.instances - quota.used.instances,
+            vcpu: quota.limits.vcpu - quota.used.vcpu,
+            memoryGiB: (quota.limits.memoryMiB - quota.used.memoryMiB) / 1024,
+            diskGiB: quota.limits.diskGiB - quota.used.diskGiB
+        }
+    );
+    const full = $derived(left !== undefined && left.instances <= 0);
 </script>
 
 <svelte:head>
@@ -63,9 +63,9 @@
         {#if full}
             <div class="mb-5 max-w-xl">
                 <Alert tone="warning" title="The plan has no room left">
-                    The plan {data.tenant.plan} allows {plan.instances}
-                    {plan.instances === 1 ? 'virtual machine' : 'virtual machines'}, and this tenant
-                    has {usage.instances}. Delete one to create another.
+                    The plan {quota?.plan} allows {quota?.limits.instances}
+                    {quota?.limits.instances === 1 ? 'virtual machine' : 'virtual machines'}, and
+                    this tenant has {quota?.used.instances}. Delete one to create another.
                 </Alert>
             </div>
         {/if}
@@ -149,13 +149,15 @@
                     }}
                     hint="An empty field takes the default: 1 vCPU, 1024 MiB, 10 GiB."
                 />
-                <p class="help tnum">
-                    Left in the plan: {Math.max(left.instances, 0)}
-                    {left.instances === 1 ? 'VM' : 'VMs'}, {Math.max(left.vcpu, 0)} vCPU, {Math.max(
-                        Math.round(left.memoryGiB * 10) / 10,
-                        0
-                    )} GiB of memory, {Math.max(left.diskGiB, 0)} GiB of disk.
-                </p>
+                {#if left}
+                    <p class="help tnum">
+                        Left in the plan: {Math.max(left.instances, 0)}
+                        {left.instances === 1 ? 'VM' : 'VMs'}, {Math.max(left.vcpu, 0)} vCPU, {Math.max(
+                            Math.round(left.memoryGiB * 10) / 10,
+                            0
+                        )} GiB of memory, {Math.max(left.diskGiB, 0)} GiB of disk.
+                    </p>
+                {/if}
             </fieldset>
 
             <div class="flex flex-col gap-1.5">

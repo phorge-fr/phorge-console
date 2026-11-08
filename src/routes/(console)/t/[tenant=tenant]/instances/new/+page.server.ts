@@ -1,21 +1,26 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
 import { NETWORK_NAME } from '#lib/networks';
 import { listImages } from '#lib/server/images';
 import { listNetworks } from '#lib/server/networks';
-import { createInstance, listInstances, type InstanceCreate } from '#lib/server/instances';
+import { getQuota } from '#lib/server/quota';
+import { createInstance, type InstanceCreate } from '#lib/server/instances';
 import type { Actions, PageServerLoad } from './$types';
 
-// What the form needs: the images and the networks that are `Ready` (the API refuses any other) and the instances, to say what is
-// left in the plan. A tenant has no network until its people create one.
+// What the form needs: the images and the networks that are `Ready` (the API refuses any other) and the quota, to say what is left in
+// the plan. A tenant has no network until its people create one. The quota only informs: the form works without it, and the API
+// refuses a request past a limit (`409`, `quota_exceeded`) with a message that says which.
 export const load: PageServerLoad = async (event) => {
-    const [instances, images, networks] = await Promise.all([
-        listInstances(event, event.params.tenant),
+    const [quota, images, networks] = await Promise.all([
+        getQuota(event, event.params.tenant).catch((error) => {
+            if (isRedirect(error)) throw error;
+            return undefined;
+        }),
         listImages(event, event.params.tenant),
         listNetworks(event, event.params.tenant)
     ]);
     return {
-        instances,
+        quota,
         images: images.filter((image) => image.phase === 'Ready'),
         networks: networks.filter((network) => network.phase === 'Ready'),
         // The networks that exist but are not ready yet: the form says to wait instead of asking to create one.
