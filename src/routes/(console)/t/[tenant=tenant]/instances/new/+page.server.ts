@@ -1,8 +1,10 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
 import { NETWORK_NAME } from '#lib/networks';
+import { PROFILE_NAME } from '#lib/profiles';
 import { listImages } from '#lib/server/images';
 import { listNetworks } from '#lib/server/networks';
+import { listProfiles } from '#lib/server/profiles';
 import { getQuota } from '#lib/server/quota';
 import { createInstance, type InstanceCreate } from '#lib/server/instances';
 import type { Actions, PageServerLoad } from './$types';
@@ -11,16 +13,22 @@ import type { Actions, PageServerLoad } from './$types';
 // the plan. A tenant has no network until its people create one. The quota only informs: the form works without it, and the API
 // refuses a request past a limit (`409`, `quota_exceeded`) with a message that says which.
 export const load: PageServerLoad = async (event) => {
-    const [quota, images, networks] = await Promise.all([
+    const [quota, images, networks, profiles] = await Promise.all([
         getQuota(event, event.params.tenant).catch((error) => {
             if (isRedirect(error)) throw error;
             return undefined;
         }),
         listImages(event, event.params.tenant),
-        listNetworks(event, event.params.tenant)
+        listNetworks(event, event.params.tenant),
+        // The sizes to choose from. Without them the form still offers a custom size.
+        listProfiles(event, event.params.tenant).catch((error) => {
+            if (isRedirect(error)) throw error;
+            return [];
+        })
     ]);
     return {
         quota,
+        profiles,
         images: images.filter((image) => image.phase === 'Ready'),
         networks: networks.filter((network) => network.phase === 'Ready'),
         // The networks that exist but are not ready yet: the form says to wait instead of asking to create one.
@@ -42,6 +50,7 @@ export const actions: Actions = {
             name,
             image,
             network,
+            size: String(form.get('size') ?? 'custom'),
             cpu: String(form.get('cpu') ?? ''),
             memoryMiB: String(form.get('memoryMiB') ?? ''),
             diskGiB: String(form.get('diskGiB') ?? ''),
@@ -62,13 +71,15 @@ export const actions: Actions = {
             return refuse('The name new is reserved by the console. Choose another one.');
         if (!image) return refuse('Choose an image.');
         if (!NETWORK_NAME.test(network)) return refuse('Choose a network.');
-        // Empty fields mean the defaults of the API.
+        // The size is a profile of the tenant or a custom size, never both. A custom size with empty fields takes the defaults of the API.
+        const custom = values.size === 'custom';
+        if (!custom && !PROFILE_NAME.test(values.size)) return refuse('Choose a size.');
         const cpu = readNumber(form, 'cpu', 'The number of vCPU', '');
-        if ('message' in cpu) return refuse(cpu.message);
+        if (custom && 'message' in cpu) return refuse(cpu.message);
         const memory = readNumber(form, 'memoryMiB', 'The memory', ' MiB');
-        if ('message' in memory) return refuse(memory.message);
+        if (custom && 'message' in memory) return refuse(memory.message);
         const disk = readNumber(form, 'diskGiB', 'The disk', ' GiB');
-        if ('message' in disk) return refuse(disk.message);
+        if (custom && 'message' in disk) return refuse(disk.message);
         const keys = parseKeys(keysText);
         const problem = keysProblem(keys);
         if (problem) return refuse(problem);
@@ -80,9 +91,13 @@ export const actions: Actions = {
             running: values.running,
             nesting: values.nesting,
             secureBoot: values.secureBoot,
-            ...(cpu.value ? { cpu: cpu.value } : {}),
-            ...(memory.value ? { memoryMiB: memory.value } : {}),
-            ...(disk.value ? { diskGiB: disk.value } : {}),
+            ...(custom
+                ? {
+                      ...('value' in cpu && cpu.value ? { cpu: cpu.value } : {}),
+                      ...('value' in memory && memory.value ? { memoryMiB: memory.value } : {}),
+                      ...('value' in disk && disk.value ? { diskGiB: disk.value } : {})
+                  }
+                : { profile: values.size }),
             ...(keys.length ? { sshPublicKeys: keys } : {})
         };
         const result = await createInstance(event, event.params.tenant, instance);

@@ -8,6 +8,8 @@ export type Instance = {
     image: string;
     /** The network of the tenant it is attached to. */
     network?: string;
+    /** The profile it has for its size, when it has one: then `cpu`, `memoryMiB` and `diskGiB` are what the profile comes to. */
+    profile?: string;
     cpu: number;
     memoryMiB: number;
     diskGiB: number;
@@ -35,6 +37,8 @@ export type InstanceCreate = {
     image: string;
     /** A `Ready` network of the tenant. It can be left out when the tenant has exactly one. */
     network?: string;
+    /** The size of the instance: a profile of the tenant, or `cpu`, `memoryMiB` and `diskGiB`, never both. */
+    profile?: string;
     cpu?: number;
     memoryMiB?: number;
     diskGiB?: number;
@@ -45,6 +49,8 @@ export type InstanceCreate = {
 };
 
 export type InstancePatch = {
+    /** Moves the instance to a profile. To leave one, give `cpu`, `memoryMiB` and `diskGiB` together. */
+    profile?: string;
     running?: boolean;
     cpu?: number;
     memoryMiB?: number;

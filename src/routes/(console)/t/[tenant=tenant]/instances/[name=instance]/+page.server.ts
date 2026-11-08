@@ -1,12 +1,22 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { keysProblem, parseKeys, readNumber } from '#lib/instances';
+import { PROFILE_NAME } from '#lib/profiles';
 import { isConfirmed } from '#lib/server/confirm';
 import { deleteInstance, getInstance, patchInstance } from '#lib/server/instances';
+import { listProfiles } from '#lib/server/profiles';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async (event) => ({
-    instance: await getInstance(event, event.params.tenant, event.params.name)
-});
+export const load: PageServerLoad = async (event) => {
+    const [instance, profiles] = await Promise.all([
+        getInstance(event, event.params.tenant, event.params.name),
+        // The profiles to move the machine to. Without them the page still lets the person give a size.
+        listProfiles(event, event.params.tenant).catch((error) => {
+            if (isRedirect(error)) throw error;
+            return [];
+        })
+    ]);
+    return { instance, profiles };
+};
 
 export const actions: Actions = {
     // Start or stop the same virtual machine. A VM started a moment ago cannot be stopped yet: the API says how long to wait.
@@ -17,6 +27,19 @@ export const actions: Actions = {
         });
         if (result.ok === false) return fail(result.status, { power: { message: result.message } });
         return { power: { message: undefined } };
+    },
+
+    // Move the machine to a profile of the tenant, applied live. The profile replaces its own size.
+    profile: async (event) => {
+        const profile = String((await event.request.formData()).get('profile') ?? '');
+        if (!PROFILE_NAME.test(profile))
+            return fail(400, { profile: { saved: false, message: 'Choose a profile.' } });
+        const result = await patchInstance(event, event.params.tenant, event.params.name, {
+            profile
+        });
+        if (result.ok === false)
+            return fail(result.status, { profile: { saved: false, message: result.message } });
+        return { profile: { saved: true, message: undefined } };
     },
 
     // Change the CPU, the memory and the disk, applied live. The image, nesting and secure boot cannot change.

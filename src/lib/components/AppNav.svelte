@@ -10,6 +10,7 @@
     import Networks from '@lucide/svelte/icons/network';
     import Overview from '@lucide/svelte/icons/layout-dashboard';
     import Plus from '@lucide/svelte/icons/plus';
+    import Profiles from '@lucide/svelte/icons/sliders-horizontal';
     import Users from '@lucide/svelte/icons/users';
     import type { Tenant } from '#lib/server/tenants';
 
@@ -46,6 +47,7 @@
                   { href: `/t/${current}`, label: 'Overview', icon: Overview, exact: true },
                   { href: `/t/${current}/images`, label: 'Images', icon: Images },
                   { href: `/t/${current}/networks`, label: 'Networks', icon: Networks },
+                  { href: `/t/${current}/profiles`, label: 'Profiles', icon: Profiles },
                   { href: `/t/${current}/instances`, label: 'Instances', icon: Instances },
                   { href: `/t/${current}/members`, label: 'Members', icon: Users }
               ]
