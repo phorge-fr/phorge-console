@@ -1,16 +1,28 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
+import { NETWORK_NAME } from '#lib/networks';
 import { listImages } from '#lib/server/images';
+import { listNetworks } from '#lib/server/networks';
 import { createInstance, listInstances, type InstanceCreate } from '#lib/server/instances';
 import type { Actions, PageServerLoad } from './$types';
 
-// What the form needs: the images that are `Ready` (the API refuses any other) and the instances, to say what is left in the plan.
+// What the form needs: the images and the networks that are `Ready` (the API refuses any other) and the instances, to say what is
+// left in the plan. A tenant has no network until its people create one.
 export const load: PageServerLoad = async (event) => {
-    const [instances, images] = await Promise.all([
+    const [instances, images, networks] = await Promise.all([
         listInstances(event, event.params.tenant),
-        listImages(event, event.params.tenant)
+        listImages(event, event.params.tenant),
+        listNetworks(event, event.params.tenant)
     ]);
-    return { instances, images: images.filter((image) => image.phase === 'Ready') };
+    return {
+        instances,
+        images: images.filter((image) => image.phase === 'Ready'),
+        networks: networks.filter((network) => network.phase === 'Ready'),
+        // The networks that exist but are not ready yet: the form says to wait instead of asking to create one.
+        networksPending: networks.some(
+            (network) => network.phase === 'Provisioning' || network.phase === 'Failed'
+        )
+    };
 };
 
 export const actions: Actions = {
@@ -19,10 +31,12 @@ export const actions: Actions = {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();
         const image = String(form.get('image') ?? '').trim();
+        const network = String(form.get('network') ?? '').trim();
         const keysText = String(form.get('sshPublicKeys') ?? '');
         const values = {
             name,
             image,
+            network,
             cpu: String(form.get('cpu') ?? ''),
             memoryMiB: String(form.get('memoryMiB') ?? ''),
             diskGiB: String(form.get('diskGiB') ?? ''),
@@ -42,6 +56,7 @@ export const actions: Actions = {
         if (name === 'new')
             return refuse('The name new is reserved by the console. Choose another one.');
         if (!image) return refuse('Choose an image.');
+        if (!NETWORK_NAME.test(network)) return refuse('Choose a network.');
         // Empty fields mean the defaults of the API.
         const cpu = readNumber(form, 'cpu', 'The number of vCPU', '');
         if ('message' in cpu) return refuse(cpu.message);
@@ -56,6 +71,7 @@ export const actions: Actions = {
         const instance: InstanceCreate = {
             name,
             image,
+            network,
             running: values.running,
             nesting: values.nesting,
             secureBoot: values.secureBoot,
