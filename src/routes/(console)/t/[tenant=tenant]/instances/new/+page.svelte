@@ -3,6 +3,8 @@
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS } from '#lib/instances';
+    import { describeSize } from '#lib/profiles';
+    import { untrack } from 'svelte';
 
     let { data, form } = $props();
 
@@ -10,6 +12,16 @@
     const list = $derived(`/t/${data.tenant.name}/instances`);
     const values = $derived(form?.values);
     const quota = $derived(data.quota);
+    // The size: a profile of the tenant, or a custom size. The profile `s` is the first choice; without profiles the size is custom.
+    let size = $state(
+        untrack(
+            () =>
+                form?.values?.size ??
+                (data.profiles.some((profile) => profile.name === 's')
+                    ? 's'
+                    : (data.profiles[0]?.name ?? 'custom'))
+        )
+    );
     // What the plan still has room for, said under the size so that the person knows what fits.
     const left = $derived(
         quota && {
@@ -141,14 +153,41 @@
 
             <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
                 <legend class="field-label mb-2 p-0">Size</legend>
-                <ResourceFields
-                    values={{
-                        cpu: values?.cpu ?? '',
-                        memoryMiB: values?.memoryMiB ?? '',
-                        diskGiB: values?.diskGiB ?? ''
-                    }}
-                    hint="An empty field takes the default: 1 vCPU, 1024 MiB, 10 GiB."
-                />
+                {#if data.profiles.length}
+                    <div class="flex flex-col gap-1.5">
+                        <label for="{id}-size" class="sr-only">Size</label>
+                        <select
+                            id="{id}-size"
+                            name="size"
+                            bind:value={size}
+                            class="field max-w-md"
+                            aria-describedby="{id}-size-help"
+                        >
+                            {#each data.profiles as profile (profile.name)}
+                                <option value={profile.name}>
+                                    {profile.name} · {describeSize(profile)}
+                                </option>
+                            {/each}
+                            <option value="custom">Custom size…</option>
+                        </select>
+                        <p id="{id}-size-help" class="help">
+                            A profile of this tenant, or your own size.
+                            <a href="/t/{data.tenant.name}/profiles">See the profiles</a>.
+                        </p>
+                    </div>
+                {:else}
+                    <input type="hidden" name="size" value="custom" />
+                {/if}
+                {#if size === 'custom'}
+                    <ResourceFields
+                        values={{
+                            cpu: values?.cpu ?? '',
+                            memoryMiB: values?.memoryMiB ?? '',
+                            diskGiB: values?.diskGiB ?? ''
+                        }}
+                        hint="An empty field takes the default: 1 vCPU, 1024 MiB, 10 GiB."
+                    />
+                {/if}
                 {#if left}
                     <p class="help tnum">
                         Left in the plan: {Math.max(left.instances, 0)}

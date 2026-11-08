@@ -10,6 +10,7 @@
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
     import { MAX_SSH_KEYS } from '#lib/instances';
+    import { describeSize } from '#lib/profiles';
 
     let { data, form } = $props();
 
@@ -96,6 +97,9 @@
             <dd class="font-mono">{instance.image}</dd>
             <dt class="text-fg-3">Size</dt>
             <dd class="tnum">
+                {#if instance.profile}
+                    <span class="font-mono font-semibold">{instance.profile}</span> ·
+                {/if}
                 {instance.cpu} vCPU · {instance.memoryMiB / 1024} GiB of memory · {instance.diskGiB} GiB
                 of disk
             </dd>
@@ -134,6 +138,46 @@
             title="Size"
             description="Applied to the running machine. The plan of the tenant sets the limit."
         >
+            {#if data.profiles.length}
+                {#if form?.profile?.message}
+                    <div class="mb-5 max-w-xl">
+                        <Alert tone="danger">{form.profile.message}</Alert>
+                    </div>
+                {:else if form?.profile?.saved}
+                    <div class="mb-5 max-w-xl">
+                        <Alert tone="info">Saved. The machine takes the size of the profile.</Alert>
+                    </div>
+                {/if}
+                <form method="POST" action="?/profile" class="mb-8 flex max-w-xl flex-col gap-3">
+                    <label for="{id}-profile" class="field-label">Profile</label>
+                    <div class="flex gap-2">
+                        <select id="{id}-profile" name="profile" required class="field max-w-md">
+                            {#if !instance.profile}
+                                <option value="" selected disabled>Choose a profile…</option>
+                            {/if}
+                            {#each data.profiles as profile (profile.name)}
+                                <option
+                                    value={profile.name}
+                                    selected={profile.name === instance.profile}
+                                >
+                                    {profile.name} · {describeSize(profile)}
+                                </option>
+                            {/each}
+                        </select>
+                        <button type="submit" class="btn-secondary shrink-0"
+                            >Use this profile</button
+                        >
+                    </div>
+                    <p class="help">
+                        {#if instance.profile}
+                            This machine has the profile {instance.profile}. Giving it a size below
+                            takes it out of the profile.
+                        {:else}
+                            This machine has its own size. A profile replaces it.
+                        {/if}
+                    </p>
+                </form>
+            {/if}
             {#if form?.resize?.message}
                 <div class="mb-5 max-w-xl"><Alert tone="danger">{form.resize.message}</Alert></div>
             {:else if form?.resize?.saved}
