@@ -1,5 +1,6 @@
 {
     "extends": "$app/tsconfig",
     "include": ["src", "test", "*"],
-    "exclude": ["src/service-worker"]
+    // `server.js` imports the build, which does not exist when the types are checked.
+    "exclude": ["src/service-worker", "server.js"]
 }

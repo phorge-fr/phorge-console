@@ -35,14 +35,22 @@ export type PendingLogin = {
     expiresAt: number;
 };
 
+const STORES = Symbol.for('phorge.console.sessions');
+
 export const SESSION_COOKIE = 'phorge_session';
 export const LOGIN_COOKIE = 'phorge_login';
 
 const SESSION_MAX_AGE_MS = 8 * 60 * 60 * 1000;
 const LOGIN_MAX_AGE_MS = 10 * 60 * 1000;
 
-const sessions = new Map<string, Session>();
-const pending = new Map<string, PendingLogin>();
+/**
+ * The stores are kept on `globalThis`, so that every copy of this module sees the same sessions: the development server may
+ * load one for the pages and another for the websocket of the terminal, and a restart of the module must not sign anybody out.
+ */
+const stores = globalThis as unknown as {
+    [STORES]?: { sessions: Map<string, Session>; pending: Map<string, PendingLogin> };
+};
+const { sessions, pending } = (stores[STORES] ??= { sessions: new Map(), pending: new Map() });
 
 /** 256 random bits, base64url: unguessable, and safe in a cookie. */
 function newId() {
@@ -76,7 +84,11 @@ export function createSession(cookies: Cookies, data: Omit<Session, 'id' | 'expi
 }
 
 export function getSession(cookies: Cookies): Session | undefined {
-    const id = cookies.get(SESSION_COOKIE);
+    return getSessionById(cookies.get(SESSION_COOKIE));
+}
+
+/** The session behind the identifier of the cookie, for a caller that has no `Cookies` (the websocket of a terminal). */
+export function getSessionById(id: string | undefined): Session | undefined {
     if (!id) return undefined;
     const session = sessions.get(id);
     if (!session) return undefined;
@@ -91,6 +103,11 @@ export function destroySession(cookies: Cookies) {
     const id = cookies.get(SESSION_COOKIE);
     if (id) sessions.delete(id);
     cookies.delete(SESSION_COOKIE, { path: '/' });
+}
+
+/** Ends a session without a response to carry the cookie away: the cookie then points at nothing. */
+export function destroySessionById(id: string) {
+    sessions.delete(id);
 }
 
 export function startPending(cookies: Cookies, login: Omit<PendingLogin, 'expiresAt'>) {

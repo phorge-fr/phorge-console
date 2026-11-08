@@ -16,6 +16,7 @@ pnpm dev        # development server
 pnpm check      # type check
 pnpm lint       # formatting
 pnpm build      # production build in build/
+pnpm start      # run the production build, with the websocket of the terminal
 ```
 
 ## Documentation

@@ -15,6 +15,7 @@ Pages are grouped by what the reader wants, following [the organization's docume
 | Page | Content |
 | --- | --- |
 | [How the console signs people in](explanation/how-the-console-signs-people-in.md) | The sign-in flow, why the session lives on the server, and its limits |
+| [How the terminal works](explanation/how-the-terminal-works.md) | The two websockets, what is carried, why there is a server entry, and what protects it |
 
 ## How-to guides
 

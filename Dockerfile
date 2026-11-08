@@ -22,7 +22,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
-COPY package.json ./
+COPY package.json server.js ./
 USER 65532:65532
 EXPOSE 3000
-CMD ["build/index.js"]
+CMD ["server.js"]

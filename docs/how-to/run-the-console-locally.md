@@ -40,11 +40,11 @@ This starts the application on your machine and runs the same checks as the CI.
 `pnpm build` writes the production server to `build/`. Start it and request the home page:
 
 ```bash
-PORT=3000 node build
+PORT=3000 node server.js
 curl -s http://127.0.0.1:3000/
 ```
 
-The response is HTML with the title `Phorge`.
+The response is HTML with the title `Phorge`. `node server.js` is the entry point of the image: it serves the pages and the websocket of the terminal of an instance, which `pnpm dev` serves too but `pnpm preview` does not.
 
 ## Undo
 

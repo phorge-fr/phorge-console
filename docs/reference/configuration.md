@@ -18,6 +18,7 @@ The issuer, the client id and the API address are needed. When one is missing, e
 | `OIDC_CLIENT_ID` | The client id of the OIDC client the console signs in with. |
 | `OIDC_CLIENT_SECRET` | Optional. The client secret of a confidential client. Leave it unset for a public client. It reaches the server only, through a Kubernetes Secret. |
 | `API_URL` | The base URL of the Phorge API, such as `https://api.phorge.fr`. |
+| `ORIGIN` | Optional, read by the adapter. When set, it is also the only `Origin` the websocket of a terminal accepts; without it the `Origin` must have the host of the request. |
 
 The adapter derives the address of the application from the request: the protocol is `https` unless `PROTOCOL_HEADER` names a header that says otherwise, and the host is the `Host` header or the one named by `HOST_HEADER`. Behind a proxy that keeps the original `Host`, nothing more is needed. The sign-in redirect address and the cross-site check of forms are built from this address.
 
@@ -40,6 +41,7 @@ The adapter derives the address of the application from the request: the protoco
 | `/t/<tenant>/instances` | The virtual machines of the tenant (`GET /v1/tenants/<tenant>/instances`) with their state. The list follows what is being made, started, stopped or deleted. A limit of the plan is refused when the instance is created (`409`, `quota_exceeded`, with a message that says which limit). |
 | `/t/<tenant>/instances/new` | The form that creates a virtual machine from a `Ready` image of the tenant, attached to a `Ready` network of the tenant (`POST`; a tenant without a network is sent to create one first): the size, which is a profile of the tenant or a custom size (the vCPU, the memory and the disk within the limits of the API, empty means its defaults), never both, with what is left in the plan said under them (from the quota of the tenant), SSH keys checked as the API checks them, and the options that cannot change later (start, secure boot, nesting). The name `new` is reserved by the console. |
 | `/t/<tenant>/instances/<name>` | One virtual machine (`GET`), with start and stop (`PATCH running`, the same machine; the API answers `409` with the time to wait right after a start), the size (`PATCH cpu, memoryMiB, diskGiB`, applied live), the SSH keys (`PATCH sshPublicKeys`, one per line, the whole list is replaced) the profile (`PATCH profile`, which replaces its own size; giving the three values together takes it out of the profile) and the deletion (`DELETE`, after typing its name, which destroys the disk). An instance that failed to start the first time is stuck: the page says to delete it and create it again. As for images, the actions are offered to everybody until the API says which role the person holds. A name that is not a valid instance name is a `404` without calling the API. |
+| `/t/<tenant>/instances/<name>/terminal` | The terminal of a running instance, a shell as root in the page (xterm.js). Without a running instance the page says so and does not connect. It talks to `/t/<tenant>/instances/<name>/terminal/socket`, a websocket of this server (not a SvelteKit route: `server.js` takes it), authenticated by the session cookie and the `Origin`, which the console relays to `GET /v1/tenants/<tenant>/instances/<name>/console` with the token of the person. The refusals and the endings of the API are shown with its own sentences. See [how the terminal works](../explanation/how-the-terminal-works.md). |
 | `/new` | Create a tenant (`POST /v1/tenants`): name, display name, owner and plan. Platform administrators only; the person is then sent to the page of the new tenant, which follows it until it is `Ready`. |
 | `GET /t/<tenant>/status` | The state of a tenant as JSON (`phase`, `problems`, or `gone`), which the page of a tenant polls while it is being made or deleted. Nothing else leaves through it. |
 | `GET /switch` | The tenant switcher: goes to the same section of the tenant given in `tenant`. Only a valid tenant name and a known section are used to build the address. |
@@ -76,6 +78,7 @@ The `Dockerfile` builds the Node server with the Node version of `.nvmrc` and ru
 | Setting | Value |
 | --- | --- |
 | User | `65532:65532`, no shell, no package manager |
+| Command | `server.js`, which starts the server of the adapter and adds the websocket of the terminal |
 | Port | `3000`, from `PORT` (and `HOST`, default `0.0.0.0`) |
 | Probe | `GET /healthz` |
 | Writes | None: it runs with a read-only root filesystem and no capability |
