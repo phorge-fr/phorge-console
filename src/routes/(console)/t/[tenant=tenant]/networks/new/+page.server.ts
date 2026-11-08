@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { MAX_NETWORK_DESCRIPTION_LENGTH, NETWORK_NAME } from '#lib/networks';
+import { isIpv4Cidr, MAX_NETWORK_DESCRIPTION_LENGTH, NETWORK_NAME } from '#lib/networks';
 import { createNetwork } from '#lib/server/networks';
 import type { Actions } from './$types';
 
@@ -9,7 +9,8 @@ export const actions: Actions = {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();
         const description = String(form.get('description') ?? '').trim();
-        const values = { name, description };
+        const ipv4 = String(form.get('ipv4') ?? '').trim();
+        const values = { name, description, ipv4 };
         const refuse = (message: string) => fail(400, { values, message });
 
         // What the person can fix is said here, in their words; the API checks it all again.
@@ -22,9 +23,15 @@ export const actions: Actions = {
                 `The description has ${MAX_NETWORK_DESCRIPTION_LENGTH} characters at most.`
             );
 
+        if (ipv4 && !isIpv4Cidr(ipv4))
+            return refuse(
+                'The range is written like 10.77.1.0/24: four numbers, a slash and the length of the prefix. Leave it empty to let the platform choose.'
+            );
+
         const result = await createNetwork(event, event.params.tenant, {
             name,
-            ...(description ? { description } : {})
+            ...(description ? { description } : {}),
+            ...(ipv4 ? { ipv4 } : {})
         });
         if (result.ok === false) return fail(result.status, { values, message: result.message });
         // The network exists and is being deployed: the list follows it until it is ready.
