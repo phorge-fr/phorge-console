@@ -23,8 +23,8 @@
                 <span class="block font-semibold capitalize">{plan}</span>
                 <span class="block text-fg-2">
                     {quota.instances}
-                    {quota.instances === 1 ? 'virtual machine' : 'virtual machines'} · {quota.vcpu} vCPU
-                    · {quota.memoryGiB} GiB of memory · {quota.diskGiB} GiB of disk
+                    virtual machines · {quota.vcpu} vCPU · {quota.memoryGiB} GiB of memory · {quota.diskGiB}
+                    GiB of disk
                 </span>
             </span>
         </label>

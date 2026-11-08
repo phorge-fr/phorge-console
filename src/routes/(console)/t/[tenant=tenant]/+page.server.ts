@@ -1,7 +1,7 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { PLANS, type Plan } from '#lib/plans';
 import { isConfirmed } from '#lib/server/confirm';
-import { listInstances } from '#lib/server/instances';
+import { getQuota } from '#lib/server/quota';
 import { deleteTenant, patchTenant } from '#lib/server/tenants';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -9,10 +9,10 @@ import type { Actions, PageServerLoad } from './$types';
 // usage is left out. A person who has to sign in again still goes to sign in.
 export const load: PageServerLoad = async (event) => {
     try {
-        return { instances: await listInstances(event, event.params.tenant) };
+        return { quota: await getQuota(event, event.params.tenant) };
     } catch (error) {
         if (isRedirect(error)) throw error;
-        return { instances: undefined };
+        return { quota: undefined };
     }
 };
 
