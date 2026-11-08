@@ -1,7 +1,7 @@
 ---
 type: explanation
 audience: developer or reviewer who needs to know how the terminal of an instance reaches the browser, and why it is built this way
-verified: 2026-11-09
+verified: 2026-11-08
 ---
 
 # How the terminal works
