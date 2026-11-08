@@ -66,7 +66,11 @@
             </span>
         </summary>
         <div class="max-h-[calc(100vh-3.5rem)] overflow-y-auto px-4 pb-4 pt-2">
-            <AppNav user={data.user} tenants={data.tenants} platformAdmin={data.platformAdmin} />
+            <AppNav
+                user={data.user}
+                tenants={data.tenants}
+                canCreateTenants={data.canCreateTenants}
+            />
         </div>
     </details>
 
@@ -75,7 +79,7 @@
         class="sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-surface px-3 py-4 md:flex"
     >
         <div class="px-2.5">{@render wordmark('h-7')}</div>
-        <AppNav user={data.user} tenants={data.tenants} platformAdmin={data.platformAdmin} />
+        <AppNav user={data.user} tenants={data.tenants} canCreateTenants={data.canCreateTenants} />
     </aside>
 
     <div class="min-w-0">
