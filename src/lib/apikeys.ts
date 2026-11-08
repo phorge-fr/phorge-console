@@ -29,14 +29,6 @@ export const SCOPES = [
     }
 ] as const;
 
-/** What each group acts on, in a few words. */
-export const GROUP_HELP: Record<string, string> = {
-    Tenant: 'The tenant itself: its state and its plan',
-    Instances: 'The virtual machines',
-    Images: 'The images virtual machines start from',
-    Members: 'Who holds a role on the tenant'
-};
-
 /** The scopes by group, in the order of the list. */
 export const SCOPE_GROUPS = SCOPES.reduce<{ group: string; items: (typeof SCOPES)[number][] }[]>(
     (groups, item) => {
@@ -59,7 +51,8 @@ export const KEY_ID = /^[a-z0-9-]{1,64}$/;
 const SCOPE_NAMES = new Set<string>(SCOPES.map((s) => s.scope));
 export const isScope = (value: string): value is Scope => SCOPE_NAMES.has(value);
 
-export const MAX_RULES = 20;
+/** A rule names at least one tenant, and a key covers 50 tenants at most: more rules than that would only repeat tenants. */
+export const MAX_RULES = 50;
 
 /**
  * What a form asks for: rules, each with the scopes ticked and the tenants chosen (`rule.<n>.scope` and `rule.<n>.tenant`). A tenant

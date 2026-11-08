@@ -28,6 +28,10 @@
         )
     );
     let expires = $state(untrack(() => form?.values?.expires || '30'));
+    // The rule being edited: one at a time, so that many rules stay short. A new key starts with one rule, open.
+    let editing = $state<number | undefined>(
+        untrack(() => (form?.values?.rules?.length ? undefined : 0))
+    );
     const covered = $derived(new Set(rules.flatMap((r) => [...r.chosen])));
     // The earliest day a key may expire: tomorrow (the API checks the end of the day against the clock).
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
@@ -201,22 +205,33 @@
                         >You are not in a tenant yet: there is nothing to give a key.</Alert
                     >
                 {:else}
-                    {#each rules as rule, index (rule)}
-                        <GrantRule
-                            {index}
-                            scopes={rule.scopes}
-                            chosen={rule.chosen}
-                            {tenants}
-                            removable={rules.length > 1}
-                            onremove={() => rules.splice(index, 1)}
-                        />
-                    {/each}
+                    <div class="flex flex-col gap-2">
+                        {#each rules as rule, index (rule)}
+                            <GrantRule
+                                {index}
+                                scopes={rule.scopes}
+                                chosen={rule.chosen}
+                                {tenants}
+                                open={editing === index}
+                                removable={rules.length > 1}
+                                onopen={() => (editing = index)}
+                                onclose={() => (editing = undefined)}
+                                onremove={() => {
+                                    rules.splice(index, 1);
+                                    editing = undefined;
+                                }}
+                            />
+                        {/each}
+                    </div>
                     <div class="flex flex-wrap items-center gap-3">
                         <button
                             type="button"
                             class="btn-secondary"
                             disabled={rules.length >= MAX_RULES}
-                            onclick={() => rules.push(empty())}
+                            onclick={() => {
+                                rules.push(empty());
+                                editing = rules.length - 1;
+                            }}
                         >
                             <Plus size={16} aria-hidden="true" />
                             Add a rule
