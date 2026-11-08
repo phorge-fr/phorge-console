@@ -39,7 +39,8 @@ The adapter derives the address of the application from the request: the protoco
 | `/new` | Create a tenant (`POST /v1/tenants`): name, display name, owner and plan. Platform administrators only; the person is then sent to the page of the new tenant, which follows it until it is `Ready`. |
 | `GET /t/<tenant>/status` | The state of a tenant as JSON (`phase`, `problems`, or `gone`), which the page of a tenant polls while it is being made or deleted. Nothing else leaves through it. |
 | `GET /switch` | The tenant switcher: goes to the same section of the tenant given in `tenant`. Only a valid tenant name and a known section are used to build the address. |
-| `/api-keys` | The keys of the person; not built yet. |
+| `/api-keys` | The keys of the signed-in person (`GET /v1/apikeys`): what each may do on which tenant, when it expires and whether it has. `?rename=<id>` shows the form that renames a key (`PATCH`, the only change the API allows) and `?revoke=<id>` the confirmation that revokes it (`DELETE`, after typing its name); the key stops working at once. |
+| `/api-keys/new` | The form that creates a key (`POST /v1/apikeys`): a name, the scopes ticked for each tenant the person sees, and the day it expires (the end of that day, in UTC; the API checks the maximum lifetime). The answer is the page of the key, shown once with its user name: it is passed to the page as it is, sent with `Cache-Control: no-store`, and kept nowhere else (not in the session, not in a log), because the API cannot give it again. For now only platform administrators create keys; the API refuses the others and the form says so. |
 | `/account` | The signed-in person, as the API sees them (`GET /v1/whoami`). |
 
 Every page needs a signed-in person; without one the browser is sent to `/login`, and back to the same page after.
