@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { MAX_GRANTS, MAX_NAME_LENGTH, readExpiry, readSelection } from '#lib/apikeys';
+import { MAX_GRANTS, MAX_NAME_LENGTH, readExpiry, readGrants } from '#lib/apikeys';
 import { createApiKey } from '#lib/server/apikeys';
 import { listTenants } from '#lib/server/tenants';
 import type { Actions } from './$types';
@@ -13,14 +13,18 @@ export const actions: Actions = {
         const day = String(form.get('expires') ?? '').trim();
         // The tenants a key may be given rights on are the ones the person sees: the names of the form are not trusted.
         const seen = (await listTenants(event)).map((tenant) => tenant.name);
-        const { tenants, scopes, grants } = readSelection(form, seen);
-        const values = { displayName, expires: day, tenants, scopes };
+        const grants = readGrants(form, seen);
+        const values = {
+            displayName,
+            expires: day,
+            ticked: Object.fromEntries(grants.map((g) => [g.tenant, g.scopes]))
+        };
         const refuse = (message: string) => fail(400, { values, message });
 
         if (!displayName || displayName.length > MAX_NAME_LENGTH)
             return refuse(`The name has 1 to ${MAX_NAME_LENGTH} characters.`);
-        if (scopes.length === 0) return refuse('Choose at least one thing the key may do.');
-        if (tenants.length === 0) return refuse('Choose at least one tenant.');
+        if (grants.length === 0)
+            return refuse('Tick at least one thing the key may do, on at least one tenant.');
         if (grants.length > MAX_GRANTS)
             return refuse(
                 `A key covers ${MAX_GRANTS} tenants at most: make another key for the others.`

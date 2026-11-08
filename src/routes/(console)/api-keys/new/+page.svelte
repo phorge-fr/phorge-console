@@ -11,19 +11,59 @@
     const id = $props.id();
     const created = $derived(form?.created);
     const tenants = $derived(data.tenants ?? []);
-    // The tenants chosen for the key, and the search that narrows the list. A tenant that the search hides stays chosen, and is still
-    // sent: the rows are hidden, not removed.
-    const chosen = new SvelteSet<string>();
+    // The rights of the key: one entry per tenant and scope that is ticked. A tenant that the search hides keeps its ticks and is
+    // still sent: the rows are hidden, not removed.
+    const ticks = new SvelteSet<string>();
+    const keyOf = (tenant: string, scope: string) => `${tenant}|${scope}`;
     // After a refused submission the page starts from what was sent.
-    untrack(() => form?.values?.tenants?.forEach((name) => chosen.add(name)));
+    untrack(() => {
+        for (const [tenant, scopes] of Object.entries(form?.values?.ticked ?? {}))
+            for (const scope of scopes) ticks.add(keyOf(tenant, scope));
+    });
     let search = $state('');
+    let onlyTicked = $state(false);
     const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
+    const covered = $derived(new Set([...ticks].map((entry) => entry.split('|')[0])));
     const shown = $derived(
-        tenants.filter((t) =>
-            `${t.name} ${label(t)}`.toLowerCase().includes(search.trim().toLowerCase())
+        tenants.filter(
+            (t) =>
+                `${t.name} ${label(t)}`.toLowerCase().includes(search.trim().toLowerCase()) &&
+                (!onlyTicked || covered.has(t.name))
         )
     );
-    const toggle = (name: string, on: boolean) => (on ? chosen.add(name) : chosen.delete(name));
+    const toggle = (tenant: string, scope: string, on: boolean) =>
+        on ? ticks.add(keyOf(tenant, scope)) : ticks.delete(keyOf(tenant, scope));
+    // A column is ticked for every tenant the search shows, or cleared for them.
+    const columnOn = (scope: string) =>
+        shown.length > 0 && shown.every((t) => ticks.has(keyOf(t.name, scope)));
+    const toggleColumn = (scope: string, on: boolean) =>
+        shown.forEach((t) => toggle(t.name, scope, on));
+    // The two header rows: a resource, then what may be done to it.
+    const groups = [
+        { title: 'Tenant', scopes: [{ scope: 'tenants:read', verb: 'See' }] },
+        {
+            title: 'Instances',
+            scopes: [
+                { scope: 'instances:read', verb: 'See' },
+                { scope: 'instances:write', verb: 'Change' }
+            ]
+        },
+        {
+            title: 'Images',
+            scopes: [
+                { scope: 'images:read', verb: 'See' },
+                { scope: 'images:write', verb: 'Change' }
+            ]
+        },
+        {
+            title: 'Members',
+            scopes: [
+                { scope: 'memberships:read', verb: 'See' },
+                { scope: 'memberships:write', verb: 'Change' }
+            ]
+        }
+    ];
+    const wording = Object.fromEntries(SCOPES.map((s) => [s.scope, s.label]));
     // The earliest day a key may expire: tomorrow (the API checks the end of the day against the clock).
     const tomorrow = new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10);
 
@@ -163,38 +203,14 @@
             </div>
 
             <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
-                <legend class="field-label mb-1 p-0">What it may do</legend>
-                <div class="grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
-                    {#each SCOPES as item (item.scope)}
-                        <label class="flex items-start gap-2.5">
-                            <input
-                                type="checkbox"
-                                name="scope"
-                                value={item.scope}
-                                checked={form?.values?.scopes?.includes(item.scope) ?? false}
-                                class="mt-1"
-                            />
-                            <span>
-                                {item.label}
-                                <span class="block font-mono text-xs text-fg-3">{item.scope}</span>
-                            </span>
-                        </label>
-                    {/each}
-                </div>
-                <p class="help">
-                    Changing instances does not let a key see them: tick both if it needs both.
-                </p>
-            </fieldset>
-
-            <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
-                <legend class="field-label mb-1 p-0">On which tenants</legend>
+                <legend class="field-label mb-1 p-0">What it may do, on which tenants</legend>
                 {#if tenants.length === 0}
                     <Alert tone="info"
                         >You are not in a tenant yet: there is nothing to give a key.</Alert
                     >
                 {:else}
-                    <div class="flex flex-wrap items-center gap-2">
-                        <label class="sr-only" for="{id}-search">Search the tenants</label>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <label class="sr-only" for="{id}-search">Search a tenant</label>
                         <input
                             id="{id}-search"
                             type="search"
@@ -203,57 +219,120 @@
                             autocomplete="off"
                             class="field max-w-64"
                         />
-                        <button
-                            type="button"
-                            class="btn-ghost"
-                            onclick={() => shown.forEach((t) => chosen.add(t.name))}
-                            >{search.trim() ? 'Choose the ones shown' : 'Choose all'}</button
-                        >
-                        <button type="button" class="btn-ghost" onclick={() => chosen.clear()}
-                            >Clear</button
-                        >
+                        <label class="flex items-center gap-2 text-sm">
+                            <input type="checkbox" bind:checked={onlyTicked} />
+                            Only the tenants with rights
+                        </label>
                         <span
-                            class="tnum ml-auto text-sm {chosen.size > MAX_GRANTS
+                            class="tnum ml-auto text-sm {covered.size > MAX_GRANTS
                                 ? 'font-semibold text-bad-fg'
                                 : 'text-fg-3'}"
                             role="status"
                         >
-                            {chosen.size} of {MAX_GRANTS} chosen
+                            {covered.size} of {MAX_GRANTS} tenants
                         </span>
                     </div>
-                    <ul
-                        class="panel m-0 max-h-72 list-none overflow-y-auto p-1"
-                        aria-label="Tenants"
-                    >
-                        {#each tenants as tenant (tenant.name)}
-                            <li hidden={!shown.includes(tenant)}>
-                                <label
-                                    class="flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 hover:bg-surface"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        name="tenant"
-                                        value={tenant.name}
-                                        checked={chosen.has(tenant.name)}
-                                        onchange={(e) =>
-                                            toggle(tenant.name, e.currentTarget.checked)}
-                                    />
-                                    <span class="min-w-0 flex-1 truncate">{label(tenant)}</span>
-                                    {#if tenant.displayName}
-                                        <span class="font-mono text-xs text-fg-3"
-                                            >{tenant.name}</span
+
+                    <div class="panel max-h-[28rem] overflow-auto">
+                        <table class="w-full min-w-[34rem] border-collapse text-left text-sm">
+                            <thead class="sticky top-0 z-10 bg-surface">
+                                <tr class="border-b border-line">
+                                    <th
+                                        scope="col"
+                                        rowspan="2"
+                                        class="px-3 py-2 align-bottom font-semibold"
+                                    >
+                                        Tenant
+                                    </th>
+                                    {#each groups as group (group.title)}
+                                        <th
+                                            scope="colgroup"
+                                            colspan={group.scopes.length}
+                                            class="border-l border-line px-2 pt-2 text-center font-semibold"
+                                            >{group.title}</th
                                         >
-                                    {/if}
-                                </label>
-                            </li>
-                        {/each}
-                        {#if shown.length === 0}
-                            <li class="px-2.5 py-3 text-fg-3">No tenant matches “{search}”.</li>
-                        {/if}
-                    </ul>
+                                    {/each}
+                                </tr>
+                                <tr class="border-b border-line text-fg-2">
+                                    {#each groups as group (group.title)}
+                                        {#each group.scopes as item (item.scope)}
+                                            <th
+                                                scope="col"
+                                                class="border-l border-line px-2 pb-2 text-center font-normal"
+                                            >
+                                                <label class="flex flex-col items-center gap-1">
+                                                    <span>{item.verb}</span>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={columnOn(item.scope)}
+                                                        onchange={(e) =>
+                                                            toggleColumn(
+                                                                item.scope,
+                                                                e.currentTarget.checked
+                                                            )}
+                                                        aria-label="Tick “{wording[
+                                                            item.scope
+                                                        ]}” for the tenants shown"
+                                                    />
+                                                </label>
+                                            </th>
+                                        {/each}
+                                    {/each}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {#each tenants as tenant (tenant.name)}
+                                    <tr
+                                        class="border-b border-line last:border-b-0 hover:bg-surface"
+                                        hidden={!shown.includes(tenant)}
+                                    >
+                                        <th scope="row" class="px-3 py-2 text-left font-normal">
+                                            <span class="block truncate font-semibold"
+                                                >{label(tenant)}</span
+                                            >
+                                            {#if tenant.displayName}
+                                                <span class="block font-mono text-xs text-fg-3"
+                                                    >{tenant.name}</span
+                                                >
+                                            {/if}
+                                        </th>
+                                        {#each SCOPES as item (item.scope)}
+                                            <td class="border-l border-line px-2 py-2 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    name="scope:{tenant.name}"
+                                                    value={item.scope}
+                                                    checked={ticks.has(
+                                                        keyOf(tenant.name, item.scope)
+                                                    )}
+                                                    onchange={(e) =>
+                                                        toggle(
+                                                            tenant.name,
+                                                            item.scope,
+                                                            e.currentTarget.checked
+                                                        )}
+                                                    aria-label="{label(
+                                                        tenant
+                                                    )}: {item.label.toLowerCase()}"
+                                                />
+                                            </td>
+                                        {/each}
+                                    </tr>
+                                {/each}
+                                {#if shown.length === 0}
+                                    <tr>
+                                        <td colspan="8" class="px-3 py-4 text-fg-3">
+                                            No tenant matches.
+                                        </td>
+                                    </tr>
+                                {/if}
+                            </tbody>
+                        </table>
+                    </div>
                     <p class="help">
-                        A key covers {MAX_GRANTS} tenants at most. For other rights on other tenants,
-                        make another key.
+                        “Change” is its own right: it does not let the key see. Tick both if it
+                        needs both. A key covers {MAX_GRANTS} tenants at most; for more, make another
+                        key.
                     </p>
                 {/if}
             </fieldset>

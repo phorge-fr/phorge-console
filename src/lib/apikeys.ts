@@ -23,16 +23,16 @@ const SCOPE_NAMES = new Set<string>(SCOPES.map((s) => s.scope));
 export const isScope = (value: string): value is Scope => SCOPE_NAMES.has(value);
 
 /**
- * What a form asks for: the same scopes on each chosen tenant (a person who needs other rights on other tenants makes another key).
- * `tenants` are the ones the person sees, so the names of the form are never trusted; the scopes are the ones the API knows.
+ * What a form asks for: the scopes ticked for each tenant (`scope:<tenant>` fields). Only the tenants the person sees count, so the
+ * names of the form are never trusted, and a tenant with nothing ticked is left out.
  */
-export function readSelection(form: FormData, seen: string[]) {
-    const known = new Set(seen);
-    const tenants = [...new Set(form.getAll('tenant').map(String))].filter((name) =>
-        known.has(name)
-    );
-    const scopes = [...new Set(form.getAll('scope').map(String))].filter(isScope);
-    return { tenants, scopes, grants: tenants.map((tenant) => ({ tenant, scopes })) };
+export function readGrants(form: FormData, seen: string[]) {
+    const grants: { tenant: string; scopes: Scope[] }[] = [];
+    for (const tenant of seen) {
+        const scopes = [...new Set(form.getAll(`scope:${tenant}`).map(String).filter(isScope))];
+        if (scopes.length > 0) grants.push({ tenant, scopes });
+    }
+    return grants;
 }
 
 /**
