@@ -4,7 +4,6 @@
     import Meter from '#lib/components/Meter.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
-    import PlanPicker from '#lib/components/PlanPicker.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
     import { PLANS } from '#lib/plans';
 
@@ -101,52 +100,52 @@
         </dl>
     </SettingsSection>
 
-    {#if data.platformAdmin}
-        {#if tenant.phase === 'Deleting'}
-            <SettingsSection title="Administration">
-                <Alert tone="info">
-                    This tenant is being deleted. This page follows it until it is gone.
-                </Alert>
-            </SettingsSection>
-        {:else}
-            <SettingsSection
-                title="Plan and name"
-                description="For platform administrators. The plan is applied within a minute."
-            >
-                <form method="POST" action="?/update" class="flex max-w-xl flex-col gap-5">
-                    {#if form?.update?.message}
-                        <Alert tone="danger">{form.update.message}</Alert>
-                    {:else if form?.update?.saved}
-                        <Alert tone="info">Saved. The new plan is applied within a minute.</Alert>
-                    {/if}
-                    <div class="flex flex-col gap-1.5">
-                        <label for="{id}-display" class="field-label">Display name</label>
-                        <input
-                            id="{id}-display"
-                            name="displayName"
-                            maxlength="100"
-                            value={tenant.displayName ?? ''}
-                            class="field"
-                        />
-                    </div>
-                    <PlanPicker selected={tenant.plan} />
-                    <div><button type="submit" class="btn-primary">Save</button></div>
-                </form>
-            </SettingsSection>
-
-            <SettingsSection title="Delete this tenant" description="For platform administrators.">
-                <div class="max-w-xl">
-                    {#if form?.remove?.message}
-                        <div class="mb-4"><Alert tone="danger">{form.remove.message}</Alert></div>
-                    {/if}
-                    <ConfirmDelete
-                        name={tenant.name}
-                        what="tenant"
-                        consequence="It destroys the virtual machines of the tenant, and its images and its members with them."
-                        action="?/delete"
+    {#if tenant.phase === 'Deleting'}
+        <SettingsSection title="Administration">
+            <Alert tone="info">
+                This tenant is being deleted. This page follows it until it is gone.
+            </Alert>
+        </SettingsSection>
+    {:else}
+        <SettingsSection
+            title="Name"
+            description="What the tenant is called in the console. The administrators of the tenant change it."
+        >
+            <form method="POST" action="?/update" class="flex max-w-xl flex-col gap-5">
+                {#if form?.update?.message}
+                    <Alert tone="danger">{form.update.message}</Alert>
+                {:else if form?.update?.saved}
+                    <Alert tone="info">Saved.</Alert>
+                {/if}
+                <div class="flex flex-col gap-1.5">
+                    <label for="{id}-display" class="field-label">Display name</label>
+                    <input
+                        id="{id}-display"
+                        name="displayName"
+                        maxlength="100"
+                        value={tenant.displayName ?? ''}
+                        class="field"
                     />
                 </div>
-            </SettingsSection>
-        {/if}
+                <div><button type="submit" class="btn-primary">Save</button></div>
+            </form>
+        </SettingsSection>
+
+        <SettingsSection
+            title="Delete this tenant"
+            description="For the administrators of the tenant, its owner included."
+        >
+            <div class="max-w-xl">
+                {#if form?.remove?.message}
+                    <div class="mb-4"><Alert tone="danger">{form.remove.message}</Alert></div>
+                {/if}
+                <ConfirmDelete
+                    name={tenant.name}
+                    what="tenant"
+                    consequence="It destroys the virtual machines of the tenant, and its images and its members with them."
+                    action="?/delete"
+                />
+            </div>
+        </SettingsSection>
     {/if}
 </main>

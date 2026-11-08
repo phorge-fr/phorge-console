@@ -139,7 +139,8 @@ export type Identity = {
     subject: string;
     email?: string;
     name?: string;
-    platformAdmin?: boolean;
+    /** True for a person with an email, false for a key: the API says whether the person may create a tenant. */
+    canCreateTenants?: boolean;
 };
 
 export const whoami = (event: RequestEvent) => apiJson<Identity>(event, '/v1/whoami');
