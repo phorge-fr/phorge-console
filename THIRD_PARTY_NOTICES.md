@@ -9,7 +9,10 @@ phorge-console is licensed under the [Apache License 2.0](LICENSE). It is built 
 | [@sveltejs/adapter-node](https://github.com/sveltejs/kit) | MIT |
 | [@sveltejs/kit](https://github.com/sveltejs/kit) | MIT |
 | [@sveltejs/vite-plugin-svelte](https://github.com/sveltejs/vite-plugin-svelte) | MIT |
+| [@types/ws](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | [@unocss/extractor-svelte](https://github.com/unocss/unocss) | MIT |
+| [@xterm/addon-fit](https://github.com/xtermjs/xterm.js) | MIT |
+| [@xterm/xterm](https://github.com/xtermjs/xterm.js) | MIT |
 | [openid-client](https://github.com/panva/openid-client) | MIT |
 | [prettier](https://github.com/prettier/prettier) | MIT |
 | [prettier-plugin-svelte](https://github.com/sveltejs/prettier-plugin-svelte) | MIT |
@@ -18,6 +21,7 @@ phorge-console is licensed under the [Apache License 2.0](LICENSE). It is built 
 | [typescript](https://github.com/microsoft/TypeScript) | Apache-2.0 |
 | [unocss](https://github.com/unocss/unocss) | MIT |
 | [vite](https://github.com/vitejs/vite) | MIT |
+| [ws](https://github.com/websockets/ws) | MIT |
 
 ## Typeface
 

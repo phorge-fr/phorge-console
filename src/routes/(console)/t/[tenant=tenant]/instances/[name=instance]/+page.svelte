@@ -2,6 +2,7 @@
     import LoaderCircle from '@lucide/svelte/icons/loader-circle';
     import Play from '@lucide/svelte/icons/play';
     import Square from '@lucide/svelte/icons/square';
+    import SquareTerminal from '@lucide/svelte/icons/square-terminal';
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
     import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
@@ -40,6 +41,13 @@
             <InstanceStatus {instance} />
         {/snippet}
         {#snippet actions()}
+            {#if instance.phase === 'Ready' && instance.state === 'Running' && !instance.transition}
+                <!-- A comfort: the API refuses a terminal whoever asks and whatever the state. -->
+                <a href="{list}/{instance.name}/terminal" class="btn-secondary">
+                    <SquareTerminal size={14} aria-hidden="true" />
+                    Terminal
+                </a>
+            {/if}
             {#if instance.phase === 'Ready'}
                 {#if instance.transition}
                     <!-- A change is under way: the button cannot be used until the machine is where it was asked to be. -->

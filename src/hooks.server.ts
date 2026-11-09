@@ -1,5 +1,7 @@
 import type { Handle } from '@sveltejs/kit/hooks';
 import { getSession } from '#lib/server/session';
+// Registers the handler of the websocket of the terminal, which `server.js` and the development server call.
+import '#lib/server/terminal';
 
 export const handle: Handle = async ({ event, resolve }) => {
     event.locals.session = getSession(event.cookies);

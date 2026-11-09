@@ -29,21 +29,32 @@ function renew(config: NonNullable<ReturnType<typeof getConfig>>, session: Sessi
 }
 
 /**
+ * Makes the access token of the session good for a while, renewing it with the refresh token when it is about to expire.
+ * False when it cannot be renewed: the person has to sign in again.
+ */
+export async function renewIfNeeded(session: Session): Promise<boolean> {
+    const config = getConfig();
+    if (!config) return false;
+    if (session.accessExpiresAt - Date.now() >= RENEW_MARGIN_MS) return true;
+    try {
+        await renew(config, session);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
  * A signed-in session with an access token that is still good, or a redirect to the sign-in page.
  * The token is renewed with the refresh token when it is about to expire.
  */
 async function freshSession(event: RequestEvent): Promise<Session> {
     const session = event.locals.session;
-    const config = getConfig();
-    if (!session || !config) redirect(303, loginPath(event.url));
-    if (session.accessExpiresAt - Date.now() < RENEW_MARGIN_MS) {
-        try {
-            await renew(config, session);
-        } catch {
-            destroySession(event.cookies);
-            event.locals.session = undefined;
-            redirect(303, loginPath(event.url));
-        }
+    if (!session || !getConfig()) redirect(303, loginPath(event.url));
+    if (!(await renewIfNeeded(session))) {
+        destroySession(event.cookies);
+        event.locals.session = undefined;
+        redirect(303, loginPath(event.url));
     }
     return session;
 }

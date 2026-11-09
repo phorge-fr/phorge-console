@@ -24,6 +24,8 @@ The brand tokens and the logos are copies: change them in `phorge-fr/.github` fi
 
 The light theme is the default. The dark theme applies when the system asks for it. `data-theme="light"` or `data-theme="dark"` on the root element forces one of them; nothing sets it yet, and no choice is stored.
 
+The terminal of an instance is a dark pane in both themes, because the colors of a shell are made for a dark background. It uses the dark values of the tokens (`--phorge-surface` for the background, `--phorge-text` for the text, `--phorge-primary` for the cursor) and the default palette of xterm.js for the colors a program asks for.
+
 The wordmark has a light and a dark file. Both are in the page and `app.css` shows the one that matches the theme, so the logo follows the forced theme as well as the system one.
 
 ## Colors
