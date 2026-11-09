@@ -8,7 +8,7 @@ web
 
 ## Users
 
-People who use Phorge to get virtual machines for their own work, without knowing how the platform is built: researchers, students and small teams. They sign in with their Phorge account, land on the tenants they belong to and, inside a tenant, pull an image and start a virtual machine. They are not infrastructure specialists: the words Incus, OpenFGA and Crossplane mean nothing to them. A few platform administrators (the Phorge team) also use the console to create tenants and change their plan; they are comfortable with technical detail, which stays one click away rather than being the default.
+People who use Phorge to get virtual machines for their own work, without knowing how the platform is built: researchers, students and small teams. They sign in with their Phorge account, land on the tenants they belong to and, inside a tenant, pull an image and start a virtual machine. They are not infrastructure specialists: the words Incus, OpenFGA and Crossplane mean nothing to them. The Phorge team does not use a separate administration side of the console: administrators act through the cluster and Incus for the special cases. People who are comfortable with technical detail find it one click away rather than as the default.
 
 ## Product Purpose
 

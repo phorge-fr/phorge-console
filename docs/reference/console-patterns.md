@@ -41,7 +41,7 @@ Creating something is a page of its own, `…/new` under the list it adds to (`/
 
 A form posts to an action of its page, and the action calls `apiAction` instead of `apiJson`: what the person can fix (a bad name, a name already taken, a refusal) comes back as a message next to the form, with what they typed kept, and a `403` is explained with the words given for that action. The action checks what it can first, in plain words, and the API checks it all again. After a creation or a deletion the person is redirected to the page that follows the result, never left on a `POST`.
 
-What is offered follows who the person is: the layout loads `platformAdmin` from `GET /v1/whoami`, and the actions for platform administrators are only shown to them. That only hides what would be refused; the API refuses it either way.
+What is offered follows who the person is: the layout loads `canCreateTenants` from `GET /v1/whoami`, and the creation of a tenant is only offered when it is true. There is no platform administrator in the API: the other actions are offered to everybody, and a `403` is explained next to the form. That only hides what would be refused; the API refuses it either way.
 
 The token is renewed once at a time (`#lib/server/api`): the layout and the page of a route load in parallel, and a second renewal with the same refresh token would be refused and sign the person out.
 

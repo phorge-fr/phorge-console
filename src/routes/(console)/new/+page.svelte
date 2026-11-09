@@ -1,9 +1,9 @@
 <script lang="ts">
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
-    import PlanPicker from '#lib/components/PlanPicker.svelte';
+    import { PLANS } from '#lib/plans';
 
-    let { data, form } = $props();
+    let { form } = $props();
 
     const id = $props.id();
 </script>
@@ -57,24 +57,12 @@
             />
         </div>
 
-        <div class="flex flex-col gap-1.5">
-            <label for="{id}-owner" class="field-label">Owner</label>
-            <input
-                id="{id}-owner"
-                name="owner"
-                type="email"
-                required
-                value={form?.values?.owner ?? data.owner}
-                class="field max-w-md"
-                aria-describedby="{id}-owner-help"
-            />
-            <p id="{id}-owner-help" class="help">
-                The email of the owner, exactly as it is in Authentik (capitals included). The owner
-                is an administrator of the tenant and cannot change.
-            </p>
-        </div>
-
-        <PlanPicker selected={form?.values?.plan ?? 'small'} />
+        <p class="help">
+            You own the tenant and start on the <span class="font-semibold">small</span> plan: {PLANS
+                .small.instances}
+            virtual machines, {PLANS.small.vcpu} vCPU, {PLANS.small.memoryGiB} GiB of memory and
+            {PLANS.small.diskGiB} GiB of disk. The number of tenants you can own is limited.
+        </p>
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="btn-primary">Create the tenant</button>

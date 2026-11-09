@@ -19,11 +19,11 @@
     let {
         user,
         tenants,
-        platformAdmin
+        canCreateTenants
     }: {
         user: { name?: string; email: string };
         tenants?: Tenant[];
-        platformAdmin: boolean;
+        canCreateTenants: boolean;
     } = $props();
 
     const id = $props.id();
@@ -155,7 +155,7 @@
                         <li class="px-2.5 py-2 text-sm text-fg-3">No tenant matches “{find}”.</li>
                     {/if}
                 </ul>
-                {#if platformAdmin}
+                {#if canCreateTenants}
                     <div class="mt-1 border-t border-line pt-1">
                         <a
                             href="/new"

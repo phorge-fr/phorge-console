@@ -71,6 +71,7 @@
                 <thead class="sr-only md:table-header-group md:not-sr-only">
                     <tr class="border-b border-line bg-surface text-sm text-fg-3">
                         <th scope="col" class="px-4 py-2.5 font-semibold">Network</th>
+                        <th scope="col" class="px-4 py-2.5 font-semibold">Range</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">Created</th>
                         <th scope="col" class="px-4 py-2.5"><span class="sr-only">Actions</span></th
@@ -87,6 +88,17 @@
                                 {#if network.description}
                                     <span class="block text-sm text-fg-3"
                                         >{network.description}</span
+                                    >
+                                {/if}
+                            </td>
+                            <td class="block py-0.5 text-sm md:table-cell md:px-4 md:py-3.5">
+                                {#if network.ipv4}
+                                    <span class="font-mono">{network.ipv4}</span>
+                                {:else}
+                                    <span class="text-fg-3"
+                                        ><span aria-hidden="true">—</span><span class="sr-only"
+                                            >Not known yet</span
+                                        ></span
                                     >
                                 {/if}
                             </td>
@@ -117,7 +129,7 @@
                             <tr
                                 class="block border-b border-line px-4 pb-3 last:border-b-0 md:table-row md:p-0"
                             >
-                                <td colspan="4" class="block md:table-cell md:px-4 md:pb-3.5">
+                                <td colspan="5" class="block md:table-cell md:px-4 md:pb-3.5">
                                     <Alert tone="danger" title="What is wrong"
                                         >{network.problems}</Alert
                                     >

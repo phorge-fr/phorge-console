@@ -1,5 +1,4 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
-import { PLANS, type Plan } from '#lib/plans';
 import { isConfirmed } from '#lib/server/confirm';
 import { getQuota } from '#lib/server/quota';
 import { deleteTenant, patchTenant } from '#lib/server/tenants';
@@ -17,22 +16,16 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-    // Change the plan and the display name. The name and the owner cannot change.
+    // Change the display name. The name, the owner and the plan cannot change.
     update: async (event) => {
         const form = await event.request.formData();
         const displayName = String(form.get('displayName') ?? '').trim();
-        const plan = String(form.get('plan') ?? '');
         if (displayName.length > 100)
             return fail(400, {
                 update: { saved: false, message: 'The display name is 100 characters at most.' }
             });
-        if (!(plan in PLANS))
-            return fail(400, { update: { saved: false, message: 'Choose a plan.' } });
 
-        const result = await patchTenant(event, event.params.tenant, {
-            displayName,
-            plan: plan as Plan
-        });
+        const result = await patchTenant(event, event.params.tenant, { displayName });
         if (result.ok === false)
             return fail(result.status, { update: { saved: false, message: result.message } });
         return { update: { saved: true, message: undefined } };

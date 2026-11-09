@@ -20,7 +20,7 @@
 <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
     <PageHeader
         title="Create a network"
-        subtitle="Your virtual machines are attached to it. The platform chooses its addresses."
+        subtitle="Your virtual machines are attached to it. You can choose its addresses, or let the platform choose."
         back={{ href: list, label: 'Networks' }}
     />
 
@@ -63,6 +63,28 @@
                 autocomplete="off"
                 class="field"
             />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-ipv4" class="field-label">
+                Address range <span class="font-normal text-fg-3">(optional)</span>
+            </label>
+            <input
+                id="{id}-ipv4"
+                name="ipv4"
+                inputmode="decimal"
+                maxlength="18"
+                value={form?.values?.ipv4 ?? ''}
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="10.77.1.0/24"
+                class="field max-w-48 font-mono"
+                aria-describedby="{id}-ipv4-help"
+            />
+            <p id="{id}-ipv4-help" class="help">
+                A private range, from /16 to /29, written as its network address, like 10.77.1.0/24.
+                Leave it empty and the platform chooses one. It cannot change.
+            </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
