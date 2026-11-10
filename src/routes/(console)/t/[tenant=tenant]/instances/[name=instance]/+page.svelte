@@ -144,7 +144,7 @@
     {#if instance.phase === 'Ready'}
         <SettingsSection
             title="Size"
-            description="Applied to the running machine. The plan of the tenant sets the limit."
+            description="A bigger size is applied to the running machine. To lower the memory, stop the machine first. The plan of the tenant sets the limit."
         >
             {#if data.profiles.length}
                 {#if form?.profile?.message}
@@ -190,7 +190,7 @@
                 <div class="mb-5 max-w-xl"><Alert tone="danger">{form.resize.message}</Alert></div>
             {:else if form?.resize?.saved}
                 <div class="mb-5 max-w-xl">
-                    <Alert tone="info">Saved. The change is applied to the running machine.</Alert>
+                    <Alert tone="info">Saved. The new size is applied.</Alert>
                 </div>
             {/if}
             <form method="POST" action="?/resize" class="flex max-w-xl flex-col gap-5">

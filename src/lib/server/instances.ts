@@ -79,8 +79,10 @@ export const createInstance = (event: RequestEvent, tenant: string, instance: In
     apiAction<Instance>(event, base(tenant), jsonRequest('POST', instance), NOT_USER);
 
 /**
- * Starts, stops, resizes, or changes the SSH keys, applied live. A VM that was started a moment ago cannot be stopped yet: the
- * API answers 409 and says how long to wait.
+ * Starts, stops, resizes, or changes the SSH keys. A VM that was started a moment ago cannot be stopped yet: the API answers 409
+ * and says how long to wait. Lowering the memory of a running VM, by `memoryMiB` or by a smaller profile, is refused with 409
+ * and the code `running`, and a sentence that says to stop the instance first. The console shows that sentence as it is.
+ * A change of size never changes the power state: nothing here stops, resizes and starts behind one action.
  */
 export const patchInstance = (
     event: RequestEvent,
