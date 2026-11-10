@@ -29,7 +29,8 @@ export const actions: Actions = {
         return { power: { message: undefined } };
     },
 
-    // Move the machine to a profile of the tenant, applied live. The profile replaces its own size.
+    // Move the machine to a profile of the tenant. The profile replaces its own size. A smaller memory on a running machine is
+    // refused by the API (409): its sentence is shown, and the machine is not stopped for the person.
     profile: async (event) => {
         const profile = String((await event.request.formData()).get('profile') ?? '');
         if (!PROFILE_NAME.test(profile))
@@ -42,7 +43,8 @@ export const actions: Actions = {
         return { profile: { saved: true, message: undefined } };
     },
 
-    // Change the CPU, the memory and the disk, applied live. The image, nesting and secure boot cannot change.
+    // Change the CPU, the memory and the disk. A bigger size is applied live; lowering the memory of a running machine is refused by
+    // the API (409, `running`) and the person stops it first, with the button of the page. The image, nesting and secure boot cannot change.
     resize: async (event) => {
         const form = await event.request.formData();
         const cpu = readNumber(form, 'cpu', 'The number of vCPU', '');
