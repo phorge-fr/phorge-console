@@ -94,6 +94,8 @@ A form posts to an action of its page, and the action calls `apiAction` instead 
 
 What is offered follows who the person is: the layout loads `canCreateTenants` from `GET /v1/whoami`, and the creation of a tenant is only offered when it is true. There is no platform administrator in the API: the other actions are offered to everybody, and a `403` is explained next to the form. That only hides what would be refused; the API refuses it either way.
 
+A choice among many objects that grows with the tenant (the tenants of an API key rule, the networks of an instance) is never a list of checkboxes or a long select. `ChipPicker` shows what is chosen as removable chips, in the order picked, and `SearchPicker` finds the rest by search, eight results at a time. They need JavaScript, so a page that promises to work without it renders them only once it is hydrated and puts a plain fallback (checkboxes or a select) in a `<noscript>`.
+
 The token is renewed once at a time (`#lib/server/api`): the layout and the page of a route load in parallel, and a second renewal with the same refresh token would be refused and sign the person out.
 
 ## Destructive actions

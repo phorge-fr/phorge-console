@@ -59,3 +59,9 @@ export function networksProblem(names: string[]): string | undefined {
     if (new Set(names).size !== names.length) return 'The same network is chosen twice.';
     return undefined;
 }
+
+/** A network as something to pick by search: its name, and its range and description to tell networks apart. */
+export const networkChoice = (network: { name: string; ipv4?: string; description?: string }) => ({
+    name: network.name,
+    hint: [network.ipv4, network.description].filter(Boolean).join(' · ') || undefined
+});

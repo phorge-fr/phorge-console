@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import LoaderCircle from '@lucide/svelte/icons/loader-circle';
     import Play from '@lucide/svelte/icons/play';
     import Square from '@lucide/svelte/icons/square';
@@ -9,9 +10,10 @@
     import PageHeader from '#lib/components/PageHeader.svelte';
     import InstanceStatus from '#lib/components/InstanceStatus.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
+    import SearchPicker from '#lib/components/SearchPicker.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
     import { MAX_SSH_KEYS } from '#lib/instances';
-    import { MAX_INSTANCE_NETWORKS } from '#lib/networks';
+    import { MAX_INSTANCE_NETWORKS, networkChoice } from '#lib/networks';
     import { describeSize } from '#lib/profiles';
 
     let { data, form } = $props();
@@ -27,6 +29,17 @@
     const addable = $derived(
         data.networks.filter((network) => !attached.some((one) => one.name === network.name))
     );
+    const choices = $derived(addable.map(networkChoice));
+    // Adding is picking a result: the form posts that network. Without JavaScript the page has a plain select instead.
+    let mounted = $state(false);
+    onMount(() => (mounted = true));
+    let addForm = $state<HTMLFormElement>();
+    let addField = $state<HTMLInputElement>();
+    function add(name: string) {
+        if (!addForm || !addField) return;
+        addField.value = name;
+        addForm.requestSubmit();
+    }
     // The page follows what is being made, started or stopped.
     const busy = $derived(
         instance.phase === 'Provisioning' || instance.phase === 'Deleting' || !!instance.transition
@@ -257,25 +270,45 @@
                 {/each}
             </ul>
             {#if addable.length && attached.length < MAX_INSTANCE_NETWORKS}
-                <form method="POST" action="?/addNetwork" class="flex max-w-xl flex-col gap-3">
+                <form
+                    method="POST"
+                    action="?/addNetwork"
+                    bind:this={addForm}
+                    class="flex max-w-xl flex-col gap-2"
+                >
                     <label for="{id}-network" class="field-label">Add a network</label>
-                    <div class="flex gap-2">
-                        <select
+                    {#if mounted}
+                        <!-- Picking a result adds it: the network is the one the form sends. -->
+                        <input type="hidden" name="network" bind:this={addField} />
+                        <SearchPicker
                             id="{id}-network"
-                            name="network"
-                            required
-                            class="field max-w-md font-mono"
-                        >
-                            {#each addable as network (network.name)}
-                                <option value={network.name}>{network.name}</option>
-                            {/each}
-                        </select>
-                        <button type="submit" class="btn-secondary shrink-0">Add</button>
-                    </div>
+                            items={choices}
+                            noun="network"
+                            placeholder="Search a network to add"
+                            mono
+                            onpick={add}
+                        />
+                    {:else}
+                        <noscript>
+                            <div class="flex gap-2">
+                                <select
+                                    id="{id}-network"
+                                    name="network"
+                                    required
+                                    class="field max-w-md font-mono"
+                                >
+                                    {#each addable as network (network.name)}
+                                        <option value={network.name}>{network.name}</option>
+                                    {/each}
+                                </select>
+                                <button type="submit" class="btn-secondary shrink-0">Add</button>
+                            </div>
+                        </noscript>
+                    {/if}
                     <p class="help">
-                        Only the networks that are ready. The machine keeps at least one network,
-                        and when one is taken out the cards that follow it are renamed at the next
-                        start.
+                        Only the networks that are ready, after the ones the machine has. The
+                        machine keeps at least one network, and when one is taken out the cards that
+                        follow it are renamed at the next start.
                     </p>
                 </form>
             {:else}

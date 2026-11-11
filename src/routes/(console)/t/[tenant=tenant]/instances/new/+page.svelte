@@ -1,12 +1,14 @@
 <script lang="ts">
     import Alert from '#lib/components/Alert.svelte';
+    import ChipPicker from '#lib/components/ChipPicker.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import SshKeysField from '#lib/components/SshKeysField.svelte';
     import { INSTANCE_NAME_PATTERN } from '#lib/instances';
-    import { MAX_INSTANCE_NETWORKS } from '#lib/networks';
+    import { MAX_INSTANCE_NETWORKS, networkChoice } from '#lib/networks';
     import { describeSize } from '#lib/profiles';
-    import { untrack } from 'svelte';
+    import { onMount, untrack } from 'svelte';
+    import { SvelteSet } from 'svelte/reactivity';
 
     let { data, form } = $props();
 
@@ -14,10 +16,16 @@
     const list = $derived(`/t/${data.tenant.name}/instances`);
     const values = $derived(form?.values);
     const quota = $derived(data.quota);
-    // The networks ticked: what the person chose before an error, or the only network of the tenant.
-    const chosen = $derived(
-        values?.networks ?? (data.networks.length === 1 ? [data.networks[0].name] : [])
+    // The networks picked, in the order they were picked, which is the order of the network cards: what the person chose before an
+    // error, or the only network of the tenant. The picker needs JavaScript; without it the form shows plain checkboxes.
+    const chosen = new SvelteSet<string>(
+        untrack(
+            () => values?.networks ?? (data.networks.length === 1 ? [data.networks[0].name] : [])
+        )
     );
+    const choices = $derived(data.networks.map(networkChoice));
+    let mounted = $state(false);
+    onMount(() => (mounted = true));
     // The size: a profile of the tenant, or a custom size. The profile `s` is the first choice; without profiles the size is custom.
     let size = $state(
         untrack(
@@ -135,27 +143,48 @@
                 </p>
             </div>
 
-            <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
-                <legend class="field-label mb-1 p-0">Networks</legend>
-                {#each data.networks as network (network.name)}
-                    <label class="flex items-center gap-3">
-                        <input
-                            type="checkbox"
-                            name="networks"
-                            value={network.name}
-                            checked={chosen.includes(network.name)}
-                            aria-describedby="{id}-networks-help"
-                        />
-                        <span class="font-mono">{network.name}</span>
-                    </label>
-                {/each}
-                <p id="{id}-networks-help" class="help">
+            <div class="flex flex-col gap-2">
+                <label for="{id}-network-search" class="field-label">Networks</label>
+                {#if mounted}
+                    {#each [...chosen] as name (name)}
+                        <input type="hidden" name="networks" value={name} />
+                    {/each}
+                    <ChipPicker
+                        id="{id}-network-search"
+                        items={choices}
+                        {chosen}
+                        noun="network"
+                        empty="No network yet. Search below and pick the ones the machine is attached to."
+                        placeholder="Search a network to add"
+                        mono
+                        ordinal={(index) => `eth${index}`}
+                        max={MAX_INSTANCE_NETWORKS}
+                    />
+                {:else}
+                    <!-- Without JavaScript the networks are checkboxes, in the order of the list: the first one ticked is eth0. -->
+                    <noscript>
+                        <div class="flex flex-col gap-2">
+                            {#each data.networks as network (network.name)}
+                                <label class="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        name="networks"
+                                        value={network.name}
+                                        checked={chosen.has(network.name)}
+                                    />
+                                    <span class="font-mono">{network.name}</span>
+                                </label>
+                            {/each}
+                        </div>
+                    </noscript>
+                {/if}
+                <p class="help">
                     Only the networks that are ready, {MAX_INSTANCE_NETWORKS} at most. The machine gets
-                    one network card for each, in the order of this list: the first one is
+                    one network card for each, in the order of the chips: the first one is
                     <code class="font-mono">eth0</code>. They can be changed later, from the page of
                     the machine. <a href="/t/{data.tenant.name}/networks/new">Create another</a>.
                 </p>
-            </fieldset>
+            </div>
 
             <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
                 <legend class="field-label mb-2 p-0">Size</legend>

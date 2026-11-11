@@ -1,9 +1,9 @@
 <script lang="ts">
     import Check from '@lucide/svelte/icons/check';
     import ChevronDown from '@lucide/svelte/icons/chevron-down';
-    import X from '@lucide/svelte/icons/x';
     import { SvelteSet } from 'svelte/reactivity';
     import { SCOPE_GROUPS, SCOPES } from '#lib/apikeys';
+    import ChipPicker from '#lib/components/ChipPicker.svelte';
 
     // One rule of an API key: the permissions it gives (by the names of the API, like `instances:read`) and the tenants it covers.
     // A closed rule is one line, so that many rules stay short; one rule is open at a time. Permissions and tenants are picked by
@@ -32,19 +32,19 @@
     } = $props();
 
     const id = $props.id();
-    const SHOWN = 8;
     const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
     const byName = $derived(new Map(tenants.map((t) => [t.name, t])));
     const nameOf = (name: string) => label(byName.get(name) ?? { name });
 
-    let tenantSearch = $state('');
-    const tenantMatches = $derived(
-        tenants.filter(
-            (t) =>
-                !chosen.has(t.name) &&
-                `${t.name} ${label(t)}`.toLowerCase().includes(tenantSearch.trim().toLowerCase())
-        )
+    // The tenants as things to pick: the name of the tenant is what is sent, its display name what is read.
+    const pickable = $derived(
+        tenants.map((t) => ({
+            name: t.name,
+            label: label(t),
+            hint: t.displayName ? t.name : undefined
+        }))
     );
+
     // The permissions are a list of resources, each with its own verbs (`instances:read`, `instances:write`, ...). A resource has a
     // checkbox for all its verbs and opens to show each one; a verb can be given on every resource at once. So a resource with eight
     // verbs, or ten resources with the same verb, is a click, and the list grows with the API without changing the screen.
@@ -223,71 +223,14 @@
 
         <div class="flex flex-col gap-2">
             <label for="{id}-search" class="field-label">On these tenants</label>
-            {#if chosen.size > 0}
-                <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0">
-                    {#each [...chosen] as name (name)}
-                        <li
-                            class="inline-flex items-center gap-1 rounded-full bg-surface-2 py-0.5 pl-2.5 pr-1 text-sm"
-                        >
-                            {nameOf(name)}
-                            <button
-                                type="button"
-                                class="grid size-5 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-fg-2 hover:bg-bg hover:text-fg"
-                                onclick={() => chosen.delete(name)}
-                                aria-label="Remove {nameOf(name)}"
-                            >
-                                <X size={12} aria-hidden="true" />
-                            </button>
-                        </li>
-                    {/each}
-                </ul>
-            {:else}
-                <p class="text-sm text-fg-3">
-                    No tenant yet. Search below and pick the ones it covers.
-                </p>
-            {/if}
-            <input
+            <ChipPicker
                 id="{id}-search"
-                type="search"
-                bind:value={tenantSearch}
-                placeholder="Search a tenant to add"
-                autocomplete="off"
-                class="field max-w-md"
+                items={pickable}
+                {chosen}
+                noun="tenant"
+                empty="No tenant yet. Search below and pick the ones it covers."
+                addAll
             />
-            <ul class="m-0 flex max-w-md list-none flex-col p-0">
-                {#each tenantMatches.slice(0, SHOWN) as tenant (tenant.name)}
-                    <li>
-                        <button
-                            type="button"
-                            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border-0 bg-transparent px-2.5 py-1.5 text-left hover:bg-surface-2"
-                            onclick={() => chosen.add(tenant.name)}
-                        >
-                            <span class="truncate">{label(tenant)}</span>
-                            {#if tenant.displayName}
-                                <span class="font-mono text-xs text-fg-3">{tenant.name}</span>
-                            {/if}
-                        </button>
-                    </li>
-                {/each}
-            </ul>
-            {#if tenantMatches.length > SHOWN}
-                <p class="help">
-                    {tenantMatches.length - SHOWN} more.
-                    {#if tenantMatches.length <= 50}
-                        <button
-                            type="button"
-                            class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-primary underline"
-                            onclick={() => tenantMatches.forEach((t) => chosen.add(t.name))}
-                            >Add all {tenantMatches.length}</button
-                        >
-                        or refine the search.
-                    {:else}
-                        Refine the search.
-                    {/if}
-                </p>
-            {:else if tenantMatches.length === 0 && tenantSearch.trim()}
-                <p class="help">No tenant matches “{tenantSearch}”.</p>
-            {/if}
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
