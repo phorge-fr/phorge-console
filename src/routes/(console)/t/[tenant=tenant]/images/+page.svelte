@@ -2,12 +2,11 @@
     import Plus from '@lucide/svelte/icons/plus';
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
-    import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
     import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
 
-    let { data, form } = $props();
+    let { data } = $props();
 
     // A list that follows what is being pulled or deleted.
     const busy = $derived(
@@ -35,24 +34,16 @@
         {/snippet}
     </PageHeader>
 
-    {#if form?.remove?.message}
+    {#if data.deleted}
         <div class="mb-6">
-            <Alert tone="danger" title="The image {form.remove.image} was not deleted">
-                {form.remove.message}
+            <Alert tone="info" title={data.deleted.gone ? 'Image deleted' : 'Deleting the image'}>
+                {#if data.deleted.gone}
+                    <span class="font-mono">{data.deleted.name}</span> is gone.
+                {:else}
+                    <span class="font-mono">{data.deleted.name}</span> is being deleted. This list follows
+                    it until it is gone.
+                {/if}
             </Alert>
-        </div>
-    {/if}
-
-    {#if data.confirm}
-        <div class="mb-6">
-            <ConfirmDelete
-                open
-                name={data.confirm}
-                what="image"
-                consequence="Virtual machines cannot be started from it any more. The deletion is refused while a virtual machine still starts from it. You can pull it again later."
-                action="?/delete&image={encodeURIComponent(data.confirm)}"
-            />
-            <p class="mt-2 text-sm"><a href={base}>Cancel</a></p>
         </div>
     {/if}
 
@@ -72,17 +63,19 @@
                         <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">Source</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">Pulled</th>
-                        <th scope="col" class="px-4 py-2.5"><span class="sr-only">Actions</span></th
-                        >
                     </tr>
                 </thead>
                 <tbody class="block md:table-row-group">
                     {#each data.images as image (image.name)}
                         <tr
-                            class="block border-b border-line px-4 py-3 align-top last:border-b-0 md:table-row md:px-0 md:py-0"
+                            class="relative block border-b border-line px-4 py-3 align-top last:border-b-0 hover:bg-surface md:table-row md:px-0 md:py-0"
                         >
                             <td class="block py-0.5 md:table-cell md:px-4 md:py-3.5">
-                                <span class="font-mono font-semibold">{image.name}</span>
+                                <a
+                                    href="{base}/{image.name}"
+                                    class="font-mono font-semibold text-fg no-underline after:absolute after:inset-0 after:content-['']"
+                                    >{image.name}</a
+                                >
                                 {#if image.aliases.length}
                                     <span class="block text-sm text-fg-3">
                                         Also known as {image.aliases.join(', ')}
@@ -107,21 +100,12 @@
                                     })}</time
                                 >
                             </td>
-                            <td class="block py-1 md:table-cell md:px-4 md:py-3.5 md:text-right">
-                                {#if image.phase !== 'Deleting'}
-                                    <a
-                                        href="{base}?delete={encodeURIComponent(image.name)}"
-                                        class="text-sm font-semibold text-fg-2 hover:text-bad-fg"
-                                        >Delete<span class="sr-only"> {image.name}</span></a
-                                    >
-                                {/if}
-                            </td>
                         </tr>
                         {#if image.problems}
                             <tr
                                 class="block border-b border-line px-4 pb-3 last:border-b-0 md:table-row md:p-0"
                             >
-                                <td colspan="5" class="block md:table-cell md:px-4 md:pb-3.5">
+                                <td colspan="4" class="block md:table-cell md:px-4 md:pb-3.5">
                                     <Alert tone="danger" title="What is wrong"
                                         >{image.problems}</Alert
                                     >
