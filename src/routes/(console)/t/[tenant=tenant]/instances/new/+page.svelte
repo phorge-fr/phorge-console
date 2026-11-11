@@ -6,7 +6,7 @@
     import SshKeysField from '#lib/components/SshKeysField.svelte';
     import { INSTANCE_NAME_PATTERN } from '#lib/instances';
     import { MAX_INSTANCE_NETWORKS, networkChoice } from '#lib/networks';
-    import { describeSize } from '#lib/profiles';
+    import { describeSize, INSTANCE_SECURE_BOOT_CHOICES } from '#lib/profiles';
     import { onMount, untrack } from 'svelte';
     import { SvelteSet } from 'svelte/reactivity';
 
@@ -253,22 +253,30 @@
                         />
                         <span>Start it once it is created</span>
                     </label>
-                    <label class="flex items-start gap-3">
-                        <input
-                            type="checkbox"
+                    <div class="flex flex-col gap-1.5">
+                        <label for="{id}-secureboot" class="field-label">UEFI secure boot</label>
+                        <select
+                            id="{id}-secureboot"
                             name="secureBoot"
-                            checked={values?.secureBoot ?? true}
-                            class="mt-1"
-                        />
-                        <span>
-                            UEFI secure boot
-                            <span class="help block">
-                                Some cloud images do not boot with it, like
-                                <code class="font-mono">alpine/3.22/cloud</code>: untick it for
-                                those. It cannot change.
-                            </span>
-                        </span>
-                    </label>
+                            class="field max-w-sm"
+                            aria-describedby="{id}-secureboot-help"
+                        >
+                            {#each INSTANCE_SECURE_BOOT_CHOICES as choice (choice.value)}
+                                <option
+                                    value={choice.value}
+                                    selected={(values?.secureBoot ?? '') === choice.value}
+                                >
+                                    {choice.label}
+                                </option>
+                            {/each}
+                        </select>
+                        <p id="{id}-secureboot-help" class="help">
+                            Left alone, the machine takes the secure boot of its profile when the
+                            profile says one, and it is on otherwise. Some cloud images do not boot
+                            with it, like <code class="font-mono">alpine/3.22/cloud</code>: choose
+                            Off for those. It cannot change.
+                        </p>
+                    </div>
                     <label class="flex items-start gap-3">
                         <input
                             type="checkbox"
