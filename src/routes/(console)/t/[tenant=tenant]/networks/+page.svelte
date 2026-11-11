@@ -2,12 +2,11 @@
     import Plus from '@lucide/svelte/icons/plus';
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
-    import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
     import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
 
-    let { data, form } = $props();
+    let { data } = $props();
 
     // A list that follows what is being deployed or deleted.
     const busy = $derived(
@@ -37,24 +36,19 @@
         {/snippet}
     </PageHeader>
 
-    {#if form?.remove?.message}
+    {#if data.deleted}
         <div class="mb-6">
-            <Alert tone="danger" title="The network {form.remove.network} was not deleted">
-                {form.remove.message}
+            <Alert
+                tone="info"
+                title={data.deleted.gone ? 'Network deleted' : 'Deleting the network'}
+            >
+                {#if data.deleted.gone}
+                    <span class="font-mono">{data.deleted.name}</span> is gone.
+                {:else}
+                    <span class="font-mono">{data.deleted.name}</span> is being deleted. This list follows
+                    it until it is gone.
+                {/if}
             </Alert>
-        </div>
-    {/if}
-
-    {#if data.confirm}
-        <div class="mb-6">
-            <ConfirmDelete
-                open
-                name={data.confirm}
-                what="network"
-                consequence="The deletion is refused while a virtual machine is attached to the network: delete those first. You can create the network again later."
-                action="?/delete&network={encodeURIComponent(data.confirm)}"
-            />
-            <p class="mt-2 text-sm"><a href={base}>Cancel</a></p>
         </div>
     {/if}
 
@@ -74,8 +68,6 @@
                         <th scope="col" class="px-4 py-2.5 font-semibold">Range</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">Created</th>
-                        <th scope="col" class="px-4 py-2.5"><span class="sr-only">Actions</span></th
-                        >
                     </tr>
                 </thead>
                 <tbody class="block md:table-row-group">
@@ -122,26 +114,12 @@
                                     })}</time
                                 >
                             </td>
-                            <td class="block py-1 md:table-cell md:px-4 md:py-3.5 md:text-right">
-                                {#if network.phase !== 'Deleting'}
-                                    <a
-                                        href="{base}/{network.name}"
-                                        class="mr-4 text-sm font-semibold text-fg-2 hover:text-fg"
-                                        >Edit<span class="sr-only"> {network.name}</span></a
-                                    >
-                                    <a
-                                        href="{base}?delete={encodeURIComponent(network.name)}"
-                                        class="text-sm font-semibold text-fg-2 hover:text-bad-fg"
-                                        >Delete<span class="sr-only"> {network.name}</span></a
-                                    >
-                                {/if}
-                            </td>
                         </tr>
                         {#if network.problems}
                             <tr
                                 class="block border-b border-line px-4 pb-3 last:border-b-0 md:table-row md:p-0"
                             >
-                                <td colspan="5" class="block md:table-cell md:px-4 md:pb-3.5">
+                                <td colspan="4" class="block md:table-cell md:px-4 md:pb-3.5">
                                     <Alert tone="danger" title="What is wrong"
                                         >{network.problems}</Alert
                                     >
