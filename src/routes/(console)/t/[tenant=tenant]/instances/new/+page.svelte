@@ -3,6 +3,7 @@
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS } from '#lib/instances';
+    import { MAX_INSTANCE_NETWORKS } from '#lib/networks';
     import { describeSize } from '#lib/profiles';
     import { untrack } from 'svelte';
 
@@ -12,6 +13,10 @@
     const list = $derived(`/t/${data.tenant.name}/instances`);
     const values = $derived(form?.values);
     const quota = $derived(data.quota);
+    // The networks ticked: what the person chose before an error, or the only network of the tenant.
+    const chosen = $derived(
+        values?.networks ?? (data.networks.length === 1 ? [data.networks[0].name] : [])
+    );
     // The size: a profile of the tenant, or a custom size. The profile `s` is the first choice; without profiles the size is custom.
     let size = $state(
         untrack(
@@ -129,27 +134,27 @@
                 </p>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-                <label for="{id}-network" class="field-label">Network</label>
-                <select
-                    id="{id}-network"
-                    name="network"
-                    required
-                    class="field max-w-sm font-mono"
-                    aria-describedby="{id}-network-help"
-                >
-                    {#each data.networks as network (network.name)}
-                        <option value={network.name} selected={values?.network === network.name}>
-                            {network.name}
-                        </option>
-                    {/each}
-                </select>
-                <p id="{id}-network-help" class="help">
-                    Only the networks that are ready. It cannot change. <a
-                        href="/t/{data.tenant.name}/networks/new">Create another</a
-                    >.
+            <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+                <legend class="field-label mb-1 p-0">Networks</legend>
+                {#each data.networks as network (network.name)}
+                    <label class="flex items-center gap-3">
+                        <input
+                            type="checkbox"
+                            name="networks"
+                            value={network.name}
+                            checked={chosen.includes(network.name)}
+                            aria-describedby="{id}-networks-help"
+                        />
+                        <span class="font-mono">{network.name}</span>
+                    </label>
+                {/each}
+                <p id="{id}-networks-help" class="help">
+                    Only the networks that are ready, {MAX_INSTANCE_NETWORKS} at most. The machine gets
+                    one network card for each, in the order of this list: the first one is
+                    <code class="font-mono">eth0</code>. They can be changed later, from the page of
+                    the machine. <a href="/t/{data.tenant.name}/networks/new">Create another</a>.
                 </p>
-            </div>
+            </fieldset>
 
             <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
                 <legend class="field-label mb-2 p-0">Size</legend>

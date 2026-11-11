@@ -1,21 +1,48 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { keysProblem, parseKeys, readNumber } from '#lib/instances';
+import { MAX_INSTANCE_NETWORKS, NETWORK_NAME } from '#lib/networks';
 import { PROFILE_NAME } from '#lib/profiles';
 import { isConfirmed } from '#lib/server/confirm';
 import { deleteInstance, getInstance, patchInstance } from '#lib/server/instances';
+import { listNetworks } from '#lib/server/networks';
 import { listProfiles } from '#lib/server/profiles';
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-    const [instance, profiles] = await Promise.all([
+    const [instance, profiles, networks] = await Promise.all([
         getInstance(event, event.params.tenant, event.params.name),
         // The profiles to move the machine to. Without them the page still lets the person give a size.
         listProfiles(event, event.params.tenant).catch((error) => {
             if (isRedirect(error)) throw error;
             return [];
+        }),
+        // The networks that can be added. Without them the page still shows and removes the ones the machine has.
+        listNetworks(event, event.params.tenant).catch((error) => {
+            if (isRedirect(error)) throw error;
+            return [];
         })
     ]);
-    return { instance, profiles };
+    return {
+        instance,
+        profiles,
+        // A network that is not ready is refused by the API (409, `network_not_ready`): only the ready ones are offered.
+        networks: networks.filter((network) => network.phase === 'Ready')
+    };
+};
+
+// The networks of the machine as it is now, in order, so that a change is made on what the API holds and not on a stale page.
+const currentNetworks = async (event: RequestEvent) =>
+    ((await getInstance(event, event.params.tenant, event.params.name)).networks ?? []).map(
+        (network) => network.name
+    );
+
+const changeNetworks = async (event: RequestEvent, networks: string[]) => {
+    const result = await patchInstance(event, event.params.tenant, event.params.name, {
+        networks
+    });
+    if (result.ok === false)
+        return fail(result.status, { networks: { saved: false, message: result.message } });
+    return { networks: { saved: true, message: undefined } };
 };
 
 export const actions: Actions = {
@@ -66,6 +93,41 @@ export const actions: Actions = {
         if (result.ok === false)
             return fail(result.status, { resize: { saved: false, message: result.message } });
         return { resize: { saved: true, message: undefined } };
+    },
+
+    // Add a network to the machine, after the ones it has (a new network card). The API replaces the list of networks, live: the VM is
+    // not stopped or restarted, and the console does not do it either.
+    addNetwork: async (event) => {
+        const network = String((await event.request.formData()).get('network') ?? '').trim();
+        if (!NETWORK_NAME.test(network))
+            return fail(400, { networks: { saved: false, message: 'Choose a network.' } });
+        const current = await currentNetworks(event);
+        if (current.includes(network))
+            return fail(400, {
+                networks: { saved: false, message: 'The machine is already on this network.' }
+            });
+        if (current.length >= MAX_INSTANCE_NETWORKS)
+            return fail(400, {
+                networks: {
+                    saved: false,
+                    message: `A machine is attached to ${MAX_INSTANCE_NETWORKS} networks at most.`
+                }
+            });
+        return changeNetworks(event, [...current, network]);
+    },
+
+    // Take a network off the machine. The API refuses an empty list (422): a machine keeps at least one network.
+    removeNetwork: async (event) => {
+        const network = String((await event.request.formData()).get('network') ?? '').trim();
+        const current = await currentNetworks(event);
+        if (!current.includes(network))
+            return fail(400, {
+                networks: { saved: false, message: 'The machine is not on this network.' }
+            });
+        return changeNetworks(
+            event,
+            current.filter((name) => name !== network)
+        );
     },
 
     // Replace the SSH keys of the VM, one per line. An empty field removes them all.

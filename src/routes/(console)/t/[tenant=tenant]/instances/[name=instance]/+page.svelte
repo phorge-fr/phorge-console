@@ -11,6 +11,7 @@
     import ResourceFields from '#lib/components/ResourceFields.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
     import { MAX_SSH_KEYS } from '#lib/instances';
+    import { MAX_INSTANCE_NETWORKS } from '#lib/networks';
     import { describeSize } from '#lib/profiles';
 
     let { data, form } = $props();
@@ -20,6 +21,11 @@
     const list = $derived(`/t/${data.tenant.name}/instances`);
     const notices = $derived(
         !!form?.power?.message || !!instance.problems || instance.phase !== 'Ready'
+    );
+    // The ready networks the machine is not on yet: what can be added.
+    const attached = $derived(instance.networks ?? []);
+    const addable = $derived(
+        data.networks.filter((network) => !attached.some((one) => one.name === network.name))
     );
     // The page follows what is being made, started or stopped.
     const busy = $derived(
@@ -111,14 +117,22 @@
                 {instance.cpu} vCPU · {instance.memoryMiB / 1024} GiB of memory · {instance.diskGiB} GiB
                 of disk
             </dd>
-            {#if instance.network}
-                <dt class="text-fg-3">Network</dt>
-                <dd class="font-mono">
-                    <a href="/t/{data.tenant.name}/networks">{instance.network}</a>
-                </dd>
-            {/if}
-            <dt class="text-fg-3">Address</dt>
-            <dd class="font-mono">{instance.ipv4 ?? '—'}</dd>
+            <dt class="text-fg-3">{attached.length > 1 ? 'Networks' : 'Network'}</dt>
+            <dd class="flex flex-col gap-1">
+                {#each attached as network, index (network.name)}
+                    <span>
+                        <a href="/t/{data.tenant.name}/networks" class="font-mono">{network.name}</a
+                        >
+                        <span class="text-fg-3">eth{index}</span>
+                        <span class="font-mono text-fg-2">
+                            {network.ipv4 ?? '—'}{#if network.ipv6}
+                                · {network.ipv6}{/if}
+                        </span>
+                    </span>
+                {:else}
+                    —
+                {/each}
+            </dd>
             <dt class="text-fg-3">Options</dt>
             <dd>
                 Secure boot {instance.secureBoot ? 'on' : 'off'} · nesting {instance.nesting
@@ -203,6 +217,77 @@
                 />
                 <div><button type="submit" class="btn-primary">Save the size</button></div>
             </form>
+        </SettingsSection>
+
+        <SettingsSection
+            title="Networks"
+            description="Changed on the running machine: it is not stopped or restarted."
+        >
+            {#if form?.networks?.message}
+                <div class="mb-5 max-w-xl">
+                    <Alert tone="danger">{form.networks.message}</Alert>
+                </div>
+            {:else if form?.networks?.saved}
+                <div class="mb-5 max-w-xl">
+                    <Alert tone="info">
+                        Saved. A network card that is added stays down in the machine until the
+                        machine configures it, and a restart does it.
+                    </Alert>
+                </div>
+            {/if}
+            <ul class="mb-6 flex max-w-xl flex-col divide-y divide-line border-y border-line">
+                {#each attached as network, index (network.name)}
+                    <li class="flex items-center justify-between gap-3 py-2.5">
+                        <span>
+                            <span class="font-mono">{network.name}</span>
+                            <span class="text-fg-3">eth{index}</span>
+                        </span>
+                        <form method="POST" action="?/removeNetwork">
+                            <input type="hidden" name="network" value={network.name} />
+                            <button
+                                type="submit"
+                                class="btn-secondary"
+                                disabled={attached.length <= 1}
+                                aria-label="Take {network.name} off the machine"
+                            >
+                                Remove
+                            </button>
+                        </form>
+                    </li>
+                {/each}
+            </ul>
+            {#if addable.length && attached.length < MAX_INSTANCE_NETWORKS}
+                <form method="POST" action="?/addNetwork" class="flex max-w-xl flex-col gap-3">
+                    <label for="{id}-network" class="field-label">Add a network</label>
+                    <div class="flex gap-2">
+                        <select
+                            id="{id}-network"
+                            name="network"
+                            required
+                            class="field max-w-md font-mono"
+                        >
+                            {#each addable as network (network.name)}
+                                <option value={network.name}>{network.name}</option>
+                            {/each}
+                        </select>
+                        <button type="submit" class="btn-secondary shrink-0">Add</button>
+                    </div>
+                    <p class="help">
+                        Only the networks that are ready. The machine keeps at least one network,
+                        and when one is taken out the cards that follow it are renamed at the next
+                        start.
+                    </p>
+                </form>
+            {:else}
+                <p class="help">
+                    {#if attached.length >= MAX_INSTANCE_NETWORKS}
+                        A machine is attached to {MAX_INSTANCE_NETWORKS} networks at most.
+                    {:else}
+                        No other network is ready.
+                        <a href="/t/{data.tenant.name}/networks/new">Create a network</a>.
+                    {/if}
+                </p>
+            {/if}
         </SettingsSection>
 
         <SettingsSection

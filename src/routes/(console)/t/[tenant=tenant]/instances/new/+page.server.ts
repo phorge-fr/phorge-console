@@ -1,6 +1,6 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
-import { NETWORK_NAME } from '#lib/networks';
+import { networksProblem } from '#lib/networks';
 import { PROFILE_NAME } from '#lib/profiles';
 import { listImages } from '#lib/server/images';
 import { listNetworks } from '#lib/server/networks';
@@ -44,12 +44,13 @@ export const actions: Actions = {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();
         const image = String(form.get('image') ?? '').trim();
-        const network = String(form.get('network') ?? '').trim();
+        // One NIC each, in the order of the list of the form: the first is `eth0`.
+        const networks = form.getAll('networks').map((value) => String(value).trim());
         const keysText = String(form.get('sshPublicKeys') ?? '');
         const values = {
             name,
             image,
-            network,
+            networks,
             size: String(form.get('size') ?? 'custom'),
             cpu: String(form.get('cpu') ?? ''),
             memoryMiB: String(form.get('memoryMiB') ?? ''),
@@ -70,7 +71,8 @@ export const actions: Actions = {
         if (name === 'new')
             return refuse('The name new is reserved by the console. Choose another one.');
         if (!image) return refuse('Choose an image.');
-        if (!NETWORK_NAME.test(network)) return refuse('Choose a network.');
+        const networksIssue = networksProblem(networks);
+        if (networksIssue) return refuse(networksIssue);
         // The size is a profile of the tenant or a custom size, never both. A custom size with empty fields takes the defaults of the API.
         const custom = values.size === 'custom';
         if (!custom && !PROFILE_NAME.test(values.size)) return refuse('Choose a size.');
@@ -87,7 +89,7 @@ export const actions: Actions = {
         const instance: InstanceCreate = {
             name,
             image,
-            network,
+            networks,
             running: values.running,
             nesting: values.nesting,
             secureBoot: values.secureBoot,
