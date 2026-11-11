@@ -82,32 +82,43 @@
                 >
                 {#if image.createdBy}<span class="text-fg-2">by {image.createdBy}</span>{/if}
             </dd>
+            <dt class="text-fg-3">Instances</dt>
+            <dd>
+                {#if data.users === undefined}
+                    <span class="text-fg-2"
+                        >The instances of this tenant could not be listed. Reload the page to try
+                        again.</span
+                    >
+                {:else}
+                    {#each data.users as instance (instance.name)}
+                        <span class="block"
+                            ><a
+                                href="/t/{data.tenant.name}/instances/{instance.name}"
+                                class="font-mono">{instance.name}</a
+                            >
+                            <span class="text-fg-3">{instance.phase}</span></span
+                        >
+                    {:else}
+                        <span class="text-fg-2">No instance starts from this image.</span>
+                    {/each}
+                {/if}
+            </dd>
         </dl>
     </SettingsSection>
 
-    <SettingsSection
-        title="Instances"
-        description="The virtual machines of this tenant that start from this image."
-    >
-        {#if data.users === undefined}
-            <p class="text-fg-2">
-                The instances of this tenant could not be listed. Reload the page to try again.
+    {#if image.phase !== 'Deleting'}
+        <SettingsSection
+            title="Change this image"
+            description="An image cannot be changed once it is pulled."
+        >
+            <p class="max-w-xl text-fg-2">
+                To update it, delete it and pull it again. Editing its aliases is not available yet
+                (<a href="https://github.com/phorge-fr/phorge-console/issues/58"
+                    >phorge-console#58</a
+                >).
             </p>
-        {:else if data.users.length === 0}
-            <p class="text-fg-2">No instance starts from this image.</p>
-        {:else}
-            <ul class="flex max-w-xl flex-col divide-y divide-line border-y border-line">
-                {#each data.users as instance (instance.name)}
-                    <li class="flex items-center justify-between gap-3 py-2.5">
-                        <a href="/t/{data.tenant.name}/instances/{instance.name}" class="font-mono"
-                            >{instance.name}</a
-                        >
-                        <span class="text-sm text-fg-3">{instance.phase}</span>
-                    </li>
-                {/each}
-            </ul>
-        {/if}
-    </SettingsSection>
+        </SettingsSection>
+    {/if}
 
     {#if image.phase !== 'Deleting'}
         <SettingsSection

@@ -7,7 +7,7 @@ Pages are grouped by what the reader wants, following [the organization's docume
 | Page | Content |
 | --- | --- |
 | [Console configuration](reference/configuration.md) | The environment variables, the routes of the sign-in, the cookies and the headers |
-| [Console patterns](reference/console-patterns.md) | The frame of the console, the states every view shows and the confirmation of a destructive action |
+| [Console patterns](reference/console-patterns.md) | The frame of the console, the states every view shows, the rule for lists and pages of objects, forms and the confirmation of a destructive action |
 | [Design system](reference/design-system.md) | Where the tokens, the typeface and the logos come from, the class names and how the themes switch |
 
 ## Explanation
