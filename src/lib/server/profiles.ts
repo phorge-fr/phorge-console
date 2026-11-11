@@ -8,6 +8,10 @@ export type Profile = {
     cpu: number;
     memoryMiB: number;
     diskGiB: number;
+    /** Absent when the profile does not say it: that is not `false`. An instance that says its own value keeps it. */
+    secureBoot?: boolean;
+    /** Absent when the profile has none. The keys of an instance replace these, they do not add to them. */
+    sshPublicKeys?: string[];
     /** `s`, `m` and `l`: every tenant has them, and they cannot be changed or deleted. */
     builtin: boolean;
     /** Only for the profiles a user made. */
@@ -43,6 +47,10 @@ export const createProfile = (
         cpu: number;
         memoryMiB: number;
         diskGiB: number;
+        /** Left out when the person did not choose: the profile then does not say it. */
+        secureBoot?: boolean;
+        /** Left out when no key was typed. */
+        sshPublicKeys?: string[];
     }
 ) => apiAction<Profile>(event, base(tenant), jsonRequest('POST', profile), NOT_OPERATOR);
 

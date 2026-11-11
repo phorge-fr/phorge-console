@@ -3,6 +3,7 @@ import { BUILTIN_PROFILE_NAMES } from '#lib/profiles';
 import { isConfirmed } from '#lib/server/confirm';
 import { listInstances } from '#lib/server/instances';
 import { deleteProfile, getProfile } from '#lib/server/profiles';
+import { labelKey } from '#lib/server/sshkeys';
 import type { Actions, PageServerLoad } from './$types';
 
 // Anybody with a role on the tenant reads the profile; deleting it is for operators and administrators, which the API decides.
@@ -17,6 +18,8 @@ export const load: PageServerLoad = async (event) => {
     ]);
     return {
         profile,
+        // The keys the profile gives, as a person recognises them: the type, the fingerprint and the comment.
+        keys: (profile.sshPublicKeys ?? []).map(labelKey),
         instances: instances?.filter((instance) => instance.profile === profile.name)
     };
 };

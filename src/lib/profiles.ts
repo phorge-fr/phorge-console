@@ -19,3 +19,29 @@ export const BUILTIN_PROFILE_NAMES = ['s', 'm', 'l'];
 /** A size in words, as the lists and the forms show it: "2 vCPU · 4 GiB of memory · 128 GiB of disk". */
 export const describeSize = (size: { cpu: number; memoryMiB: number; diskGiB: number }) =>
     `${size.cpu} vCPU · ${Math.round((size.memoryMiB / 1024) * 10) / 10} GiB of memory · ${size.diskGiB} GiB of disk`;
+
+/**
+ * What a profile says about secure boot, as a plain form sends it. A select cannot send "nothing" except by an empty value:
+ * `''` is "the profile does not say" (the field is left out of the request), `on` is `true` and `off` is `false`.
+ */
+export type SecureBootChoice = '' | 'on' | 'off';
+
+export const SECURE_BOOT_CHOICES: { value: SecureBootChoice; label: string }[] = [
+    { value: '', label: "Not set: the instance's default" },
+    { value: 'on', label: 'On' },
+    { value: 'off', label: 'Off' }
+];
+
+/** The choice of the form as the API takes it: `undefined` (not sent), `true` or `false`. Anything else is not a choice. */
+export const readSecureBoot = (
+    raw: string
+): { value: boolean | undefined } | { message: string } => {
+    if (raw === '') return { value: undefined };
+    if (raw === 'on') return { value: true };
+    if (raw === 'off') return { value: false };
+    return { message: 'Choose on, off or not set for the secure boot.' };
+};
+
+/** What a profile says about secure boot, in words. An absent value is not `false`: the profile does not say. */
+export const describeSecureBoot = (secureBoot: boolean | undefined) =>
+    secureBoot === undefined ? "Not set: the instance's default" : secureBoot ? 'On' : 'Off';
