@@ -20,6 +20,9 @@ export type Profile = {
 
 const base = (tenant: string) => `/v1/tenants/${encodeURIComponent(tenant)}/profiles`;
 
+export const getProfile = (event: RequestEvent, tenant: string, name: string) =>
+    apiJson<Profile>(event, `${base(tenant)}/${encodeURIComponent(name)}`);
+
 /** The profiles of a tenant: the three of every tenant first, then the others by name. Any role of the tenant reads them. */
 export const listProfiles = async (event: RequestEvent, tenant: string) =>
     (await apiJson<{ items: Profile[] }>(event, base(tenant))).items;
