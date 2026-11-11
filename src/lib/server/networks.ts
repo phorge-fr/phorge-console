@@ -10,6 +10,8 @@ export type Network = {
      * not an error. Right after the creation it is there only if the person chose it.
      */
     ipv4?: string;
+    /** The local IPv6 range (a /64 in fd00::/8), known the same way as `ipv4`. */
+    ipv6?: string;
     phase: Phase;
     /** What is wrong, in a sentence made for the person (a limit of the plan that is reached). */
     problems?: string;
@@ -20,11 +22,14 @@ export type Network = {
 const base = (tenant: string) => `/v1/tenants/${encodeURIComponent(tenant)}/networks`;
 
 /** The networks of a tenant, by name. A tenant comes without any: its people deploy the ones they need. Any role reads them. */
+export const getNetwork = (event: RequestEvent, tenant: string, name: string) =>
+    apiJson<Network>(event, `${base(tenant)}/${encodeURIComponent(name)}`);
+
 export const listNetworks = async (event: RequestEvent, tenant: string) =>
     (await apiJson<{ items: Network[] }>(event, base(tenant))).items;
 
 const NOT_OPERATOR =
-    'Only operators and administrators of this tenant can create or delete networks.';
+    'Only operators and administrators of this tenant can create, change or delete networks.';
 
 /**
  * The answer is 202: the network is `Provisioning` until it is deployed. The plan limits the number of networks: past it the
@@ -34,8 +39,30 @@ const NOT_OPERATOR =
 export const createNetwork = (
     event: RequestEvent,
     tenant: string,
-    network: { name: string; description?: string; ipv4?: string }
+    network: { name: string; description?: string; ipv4?: string; ipv6?: string }
 ) => apiAction<Network>(event, base(tenant), jsonRequest('POST', network), NOT_OPERATOR);
+
+/** What a `PATCH` changes: what is absent stays. A range that was given cannot be removed (422). An empty `description` clears it. */
+export type NetworkPatch = { description?: string; ipv4?: string; ipv6?: string };
+
+/**
+ * The answer is 202: Incus applies the change a few seconds later. The refusals are shown as the API words them: 409
+ * `range_reserved` or `range_in_use` for a range that is taken, 422 for a range of a wrong shape or one that cannot be removed,
+ * and 409 `running` for a new IPv4 range while an instance runs on the network (the message names the instances). The console
+ * never stops an instance to make the change possible: the person does it, from the instance.
+ */
+export const patchNetwork = (
+    event: RequestEvent,
+    tenant: string,
+    name: string,
+    patch: NetworkPatch
+) =>
+    apiAction<Network>(
+        event,
+        `${base(tenant)}/${encodeURIComponent(name)}`,
+        jsonRequest('PATCH', patch),
+        NOT_OPERATOR
+    );
 
 /**
  * The answer is 202. While an instance is attached to the network the API answers 409 and names the instances in its message;

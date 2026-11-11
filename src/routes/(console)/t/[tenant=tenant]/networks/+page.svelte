@@ -84,7 +84,9 @@
                             class="block border-b border-line px-4 py-3 align-top last:border-b-0 md:table-row md:px-0 md:py-0"
                         >
                             <td class="block py-0.5 md:table-cell md:px-4 md:py-3.5">
-                                <span class="font-mono font-semibold">{network.name}</span>
+                                <a href="{base}/{network.name}" class="font-mono font-semibold"
+                                    >{network.name}</a
+                                >
                                 {#if network.description}
                                     <span class="block text-sm text-fg-3"
                                         >{network.description}</span
@@ -92,8 +94,13 @@
                                 {/if}
                             </td>
                             <td class="block py-0.5 text-sm md:table-cell md:px-4 md:py-3.5">
-                                {#if network.ipv4}
-                                    <span class="font-mono">{network.ipv4}</span>
+                                {#if network.ipv4 || network.ipv6}
+                                    {#if network.ipv4}<span class="block font-mono"
+                                            >{network.ipv4}</span
+                                        >{/if}
+                                    {#if network.ipv6}<span class="block font-mono"
+                                            >{network.ipv6}</span
+                                        >{/if}
                                 {:else}
                                     <span class="text-fg-3"
                                         ><span aria-hidden="true">—</span><span class="sr-only"
@@ -117,6 +124,11 @@
                             </td>
                             <td class="block py-1 md:table-cell md:px-4 md:py-3.5 md:text-right">
                                 {#if network.phase !== 'Deleting'}
+                                    <a
+                                        href="{base}/{network.name}"
+                                        class="mr-4 text-sm font-semibold text-fg-2 hover:text-fg"
+                                        >Edit<span class="sr-only"> {network.name}</span></a
+                                    >
                                     <a
                                         href="{base}?delete={encodeURIComponent(network.name)}"
                                         class="text-sm font-semibold text-fg-2 hover:text-bad-fg"
