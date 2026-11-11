@@ -26,11 +26,20 @@ export const describeSize = (size: { cpu: number; memoryMiB: number; diskGiB: nu
  */
 export type SecureBootChoice = '' | 'on' | 'off';
 
-export const SECURE_BOOT_CHOICES: { value: SecureBootChoice; label: string }[] = [
-    { value: '', label: "Not set: the instance's default" },
+const secureBootChoices = (notSet: string): { value: SecureBootChoice; label: string }[] => [
+    { value: '', label: notSet },
     { value: 'on', label: 'On' },
     { value: 'off', label: 'Off' }
 ];
+
+/** The choices of the form of a profile. */
+export const SECURE_BOOT_CHOICES = secureBootChoices("Not set: the instance's default");
+
+/**
+ * The choices of the form of an instance, which sends the same three. Left alone, the instance takes the secure boot of its profile
+ * when it has a profile that says one, else the default of the platform, which is on.
+ */
+export const INSTANCE_SECURE_BOOT_CHOICES = secureBootChoices("Not set: the profile's, or on");
 
 /** The choice of the form as the API takes it: `undefined` (not sent), `true` or `false`. Anything else is not a choice. */
 export const readSecureBoot = (

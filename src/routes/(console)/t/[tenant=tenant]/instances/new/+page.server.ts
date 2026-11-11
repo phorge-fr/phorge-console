@@ -1,7 +1,7 @@
 import { fail, isRedirect, redirect } from '@sveltejs/kit';
 import { INSTANCE_NAME, keysProblem, parseKeys, readNumber } from '#lib/instances';
 import { networksProblem } from '#lib/networks';
-import { PROFILE_NAME } from '#lib/profiles';
+import { PROFILE_NAME, readSecureBoot } from '#lib/profiles';
 import { listImages } from '#lib/server/images';
 import { listNetworks } from '#lib/server/networks';
 import { listProfiles } from '#lib/server/profiles';
@@ -39,7 +39,7 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-    // Create a virtual machine from an image of the tenant. What is not given is the default of the API.
+    // Create a virtual machine from an image of the tenant. What is not given is the default of the API, or the profile's for the secure boot and the SSH keys.
     default: async (event) => {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();
@@ -57,7 +57,7 @@ export const actions: Actions = {
             diskGiB: String(form.get('diskGiB') ?? ''),
             running: form.get('running') === 'on',
             nesting: form.get('nesting') === 'on',
-            secureBoot: form.get('secureBoot') === 'on',
+            secureBoot: String(form.get('secureBoot') ?? ''),
             sshPublicKeys: keysText
         };
         const refuse = (message: string) => fail(400, { values, message });
@@ -85,6 +85,9 @@ export const actions: Actions = {
         const keys = parseKeys(keysText);
         const problem = keysProblem(keys);
         if (problem) return refuse(problem);
+        // Secure boot is sent only when the person chose it: left alone, the instance takes its profile's, or the default.
+        const secureBoot = readSecureBoot(values.secureBoot);
+        if ('message' in secureBoot) return refuse(secureBoot.message);
 
         const instance: InstanceCreate = {
             name,
@@ -92,7 +95,7 @@ export const actions: Actions = {
             networks,
             running: values.running,
             nesting: values.nesting,
-            secureBoot: values.secureBoot,
+            ...(secureBoot.value === undefined ? {} : { secureBoot: secureBoot.value }),
             ...(custom
                 ? {
                       ...('value' in cpu && cpu.value ? { cpu: cpu.value } : {}),
