@@ -5,7 +5,6 @@
     import EmptyState from '#lib/components/EmptyState.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
-    import { PLANS } from '#lib/plans';
 
     let { data } = $props();
 
@@ -54,7 +53,6 @@
                     <tr class="border-b border-line bg-surface text-sm text-fg-3">
                         <th scope="col" class="px-4 py-2.5 font-semibold">Name</th>
                         <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
-                        <th scope="col" class="px-4 py-2.5 font-semibold">Plan</th>
                         <th scope="col" class="w-10 px-4 py-2.5"
                             ><span class="sr-only">Open</span></th
                         >
@@ -62,7 +60,6 @@
                 </thead>
                 <tbody class="block md:table-row-group">
                     {#each data.tenants as tenant (tenant.name)}
-                        {@const plan = PLANS[tenant.plan]}
                         <tr
                             class="relative block border-b border-line px-4 py-3 last:border-b-0 hover:bg-surface md:table-row md:px-0 md:py-0"
                         >
@@ -80,16 +77,6 @@
                             </td>
                             <td class="block py-1 md:table-cell md:px-4 md:py-3.5">
                                 <PhaseBadge phase={tenant.phase} />
-                            </td>
-                            <td class="tnum block py-0.5 text-fg-2 md:table-cell md:px-4 md:py-3.5">
-                                <span class="font-semibold capitalize text-fg">{tenant.plan}</span>
-                                {#if plan}
-                                    <span class="text-fg-3">
-                                        · {plan.instances}
-                                        VMs · {plan.vcpu} vCPU · {plan.memoryGiB}
-                                        GiB
-                                    </span>
-                                {/if}
                             </td>
                             <td class="hidden px-4 py-3.5 text-right md:table-cell">
                                 <ChevronRight

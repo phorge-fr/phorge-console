@@ -16,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-    // Change the display name. The name, the owner and the plan cannot change.
+    // Change the display name. The name and the owner cannot change.
     update: async (event) => {
         const form = await event.request.formData();
         const displayName = String(form.get('displayName') ?? '').trim();

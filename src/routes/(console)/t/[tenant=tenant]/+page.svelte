@@ -5,23 +5,11 @@
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
-    import { PLANS } from '#lib/plans';
 
     let { data, form } = $props();
 
     const id = $props.id();
     const tenant = $derived(data.tenant);
-    // What the tenant really has, from its quota; the description of the plan stands in when the quota cannot be read.
-    const plan = $derived(
-        data.quota
-            ? {
-                  instances: data.quota.limits.instances,
-                  vcpu: data.quota.limits.vcpu,
-                  memoryGiB: data.quota.limits.memoryMiB / 1024,
-                  diskGiB: data.quota.limits.diskGiB
-              }
-            : PLANS[tenant.plan]
-    );
 </script>
 
 <svelte:head>
@@ -45,7 +33,10 @@
         </div>
     {/if}
 
-    <SettingsSection title="Usage" description="What this tenant holds of what its plan allows.">
+    <SettingsSection
+        title="Usage"
+        description="What this tenant holds of what every tenant may hold."
+    >
         {#if data.quota}
             {@const used = data.quota.used}
             {@const limits = data.quota.limits}
@@ -60,9 +51,12 @@
                 />
                 <Meter label="Disk" used={used.diskGiB} total={limits.diskGiB} unit="GiB" />
                 <Meter label="Networks" used={used.networks} total={limits.networks} />
+                <Meter label="Profiles" used={used.profiles} total={limits.profiles} />
             </div>
             <p class="help mt-5">
-                Stopped machines count. <a href="/t/{tenant.name}/instances">See the instances</a>
+                Stopped machines count. The profiles <span class="font-mono">s</span>,
+                <span class="font-mono">m</span> and <span class="font-mono">l</span> do not.
+                <a href="/t/{tenant.name}/instances">See the instances</a>
             </p>
         {:else}
             <Alert tone="warning"
@@ -75,15 +69,6 @@
         <dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-8 gap-y-3">
             <dt class="text-fg-3">Owner</dt>
             <dd class="break-words">{tenant.owner}</dd>
-            <dt class="text-fg-3">Plan</dt>
-            <dd class="tnum">
-                <span class="font-semibold capitalize">{tenant.plan}</span>
-                <span class="text-fg-2">
-                    · {plan.instances}
-                    {plan.instances === 1 ? 'VM' : 'VMs'} · {plan.vcpu} vCPU · {plan.memoryGiB} GiB of
-                    memory · {plan.diskGiB} GiB of disk
-                </span>
-            </dd>
             {#if tenant.createdAt}
                 <dt class="text-fg-3">Created</dt>
                 <dd>

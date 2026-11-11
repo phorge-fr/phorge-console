@@ -1,5 +1,4 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import type { Plan } from '#lib/plans';
 import { apiAction, apiJson, jsonRequest as json } from './api';
 
 /** `Provisioning` is being made or changed, `Failed` is not ready after 3 minutes (see `problems`). */
@@ -9,7 +8,6 @@ export type Tenant = {
     name: string;
     displayName?: string;
     owner: string;
-    plan: Plan;
     phase?: Phase;
     problems?: string;
     namespace?: string;
@@ -28,13 +26,13 @@ export const getTenant = (event: RequestEvent, name: string) =>
 const NOT_ADMIN = 'Only the administrators of this tenant can do this.';
 
 /**
- * The person is the owner and the plan is `small`. The API answers 202: the tenant exists and is `Provisioning` for about a
+ * The person is the owner and every tenant has the same limits. The API answers 202: the tenant exists and is `Provisioning` for about a
  * minute. Past the number of tenants a person may own it answers 409 `quota_exceeded`, with a message to show as it is.
  */
 export const createTenant = (event: RequestEvent, tenant: { name: string; displayName?: string }) =>
     apiAction<Tenant>(event, '/v1/tenants', json('POST', tenant), 'You cannot create a tenant.');
 
-/** The administrators of the tenant change its display name; the name and the owner cannot change, nor the plan (`403`). */
+/** The administrators of the tenant change its display name; the name and the owner cannot change, */
 export const patchTenant = (event: RequestEvent, name: string, patch: { displayName?: string }) =>
     apiAction<Tenant>(
         event,

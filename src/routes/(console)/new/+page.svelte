@@ -1,7 +1,6 @@
 <script lang="ts">
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
-    import { PLANS } from '#lib/plans';
 
     let { form } = $props();
 
@@ -57,12 +56,7 @@
             />
         </div>
 
-        <p class="help">
-            You own the tenant and start on the <span class="font-semibold">small</span> plan: {PLANS
-                .small.instances}
-            virtual machines, {PLANS.small.vcpu} vCPU, {PLANS.small.memoryGiB} GiB of memory and
-            {PLANS.small.diskGiB} GiB of disk. The number of tenants you can own is limited.
-        </p>
+        <p class="help">You own the tenant. The number of tenants you can own is limited.</p>
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="btn-primary">Create the tenant</button>

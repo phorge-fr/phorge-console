@@ -27,7 +27,7 @@ Phorge is an open-source cloud provider where every line of configuration, autom
 
 ## Capabilities and Constraints
 
-- Views that exist: tenants home, new tenant, one tenant (overview, plan, deletion), images, instances (list, create, one instance with power, size, SSH keys, deletion), account. Members and API keys are not built yet (#15, #18).
+- Views that exist: tenants home, new tenant, one tenant (overview with its limits and what it holds, name, deletion), images, instances (list, create, one instance with power, size, SSH keys, deletion), account. Members and API keys are not built yet (#15, #18).
 - Everything the API offers is asynchronous and returns a phase: `Provisioning`, `Ready`, `Failed`, `Deleting`. A `Failed` instance is stuck and has to be deleted and created again.
 - Destructive actions need the person to type the exact name; the server checks it.
 - Server-rendered SvelteKit with no token in client-side code; the forms work without JavaScript and JavaScript only adds following states and polling.

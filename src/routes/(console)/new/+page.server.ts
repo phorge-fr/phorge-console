@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 };
 
 export const actions: Actions = {
-    // The person is the owner and the plan is `small`: neither is a choice, the API refuses any other.
+    // The person is the owner: it is not a choice, and a tenant has the same limits as every other.
     default: async (event) => {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();

@@ -13,7 +13,7 @@ export type Network = {
     /** The local IPv6 range (a /64 in fd00::/8), known the same way as `ipv4`. */
     ipv6?: string;
     phase: Phase;
-    /** What is wrong, in a sentence made for the person (a limit of the plan that is reached). */
+    /** What is wrong, in a sentence made for the person (a limit that is reached). */
     problems?: string;
     createdAt: string;
     createdBy?: string;
@@ -32,7 +32,7 @@ const NOT_OPERATOR =
     'Only operators and administrators of this tenant can create, change or delete networks.';
 
 /**
- * The answer is 202: the network is `Provisioning` until it is deployed. The plan limits the number of networks: past it the
+ * The answer is 202: the network is `Provisioning` until it is deployed. The number of networks is limited: past it the
  * API refuses with 409 `quota_exceeded`, and a message that says so. A range that is reserved or already used is refused with
  * 409 `range_reserved` or `range_in_use`, and a range of a wrong shape with 422: the messages are shown as they are.
  */

@@ -36,7 +36,7 @@
                     : (data.profiles[0]?.name ?? 'custom'))
         )
     );
-    // What the plan still has room for, said under the size so that the person knows what fits.
+    // What the tenant still has room for, said under the size so that the person knows what fits.
     const left = $derived(
         quota && {
             instances: quota.limits.instances - quota.used.instances,
@@ -88,8 +88,8 @@
     {:else}
         {#if full}
             <div class="mb-5 max-w-xl">
-                <Alert tone="warning" title="The plan has no room left">
-                    The plan {quota?.plan} allows {quota?.limits.instances}
+                <Alert tone="warning" title="No room for another machine">
+                    A tenant may hold {quota?.limits.instances}
                     {quota?.limits.instances === 1 ? 'virtual machine' : 'virtual machines'}, and
                     this tenant has {quota?.used.instances}. Delete one to create another.
                 </Alert>
@@ -225,7 +225,7 @@
                 {/if}
                 {#if left}
                     <p class="help tnum">
-                        Left in the plan: {Math.max(left.instances, 0)}
+                        Room left: {Math.max(left.instances, 0)}
                         {left.instances === 1 ? 'VM' : 'VMs'}, {Math.max(left.vcpu, 0)} vCPU, {Math.max(
                             Math.round(left.memoryGiB * 10) / 10,
                             0
