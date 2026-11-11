@@ -58,11 +58,15 @@
                 <tr class="border-b border-line bg-surface text-sm text-fg-3">
                     <th scope="col" class="px-4 py-2.5 font-semibold">Name</th>
                     <th scope="col" class="px-4 py-2.5 font-semibold">Size</th>
+                    <th scope="col" class="px-4 py-2.5 font-semibold">Settings</th>
                     <th scope="col" class="px-4 py-2.5 font-semibold">State</th>
                 </tr>
             </thead>
             <tbody class="block md:table-row-group">
                 {#each data.profiles as profile (profile.name)}
+                    <!-- A profile that says nothing shows nothing (and no gap on a phone): the mark is for the ones that do. -->
+                    {@const says =
+                        profile.secureBoot !== undefined || !!profile.sshPublicKeys?.length}
                     <tr
                         class="relative block border-b border-line px-4 py-3 align-top last:border-b-0 hover:bg-surface md:table-row md:px-0 md:py-0"
                     >
@@ -84,6 +88,27 @@
                         >
                             {describeSize(profile)}
                         </td>
+                        <td
+                            class="{says
+                                ? 'block'
+                                : 'hidden'} py-0.5 text-sm text-fg-2 md:table-cell md:px-4 md:py-3.5"
+                        >
+                            {#if says}
+                                {#if profile.secureBoot !== undefined}
+                                    <span class="block"
+                                        >Secure boot {profile.secureBoot ? 'on' : 'off'}</span
+                                    >
+                                {/if}
+                                {#if profile.sshPublicKeys?.length}
+                                    <span class="block tnum"
+                                        >{profile.sshPublicKeys.length} SSH {profile.sshPublicKeys
+                                            .length === 1
+                                            ? 'key'
+                                            : 'keys'}</span
+                                    >
+                                {/if}
+                            {/if}
+                        </td>
                         <td class="block py-1 md:table-cell md:px-4 md:py-3.5">
                             {#if profile.phase}
                                 <PhaseBadge phase={profile.phase} />
@@ -94,7 +119,7 @@
                         <tr
                             class="block border-b border-line px-4 pb-3 last:border-b-0 md:table-row md:p-0"
                         >
-                            <td colspan="3" class="block md:table-cell md:px-4 md:pb-3.5">
+                            <td colspan="4" class="block md:table-cell md:px-4 md:pb-3.5">
                                 <Alert tone="danger" title="What is wrong">{profile.problems}</Alert
                                 >
                             </td>

@@ -5,6 +5,7 @@
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
+    import { describeSecureBoot } from '#lib/profiles';
 
     let { data, form } = $props();
 
@@ -54,7 +55,7 @@
 
     <SettingsSection
         title="Overview"
-        description="The size a virtual machine takes when it has this profile."
+        description="The size and the settings a virtual machine takes when it has this profile."
     >
         <dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-8 gap-y-3">
             <dt class="text-fg-3">vCPU</dt>
@@ -63,6 +64,25 @@
             <dd class="tnum">{Math.round((profile.memoryMiB / 1024) * 10) / 10} GiB</dd>
             <dt class="text-fg-3">Root disk</dt>
             <dd class="tnum">{profile.diskGiB} GiB</dd>
+            <dt class="text-fg-3">Secure boot</dt>
+            <dd>{describeSecureBoot(profile.secureBoot)}</dd>
+            <dt class="text-fg-3">SSH keys</dt>
+            <dd>
+                {#if data.keys.length === 0}
+                    <span class="text-fg-2">None</span>
+                {:else}
+                    <span class="tnum">{data.keys.length}</span>
+                    <ul class="m-0 mt-1 flex list-none flex-col gap-2 p-0">
+                        {#each data.keys as key, index (index)}
+                            <li class="min-w-0 font-mono text-sm break-all">
+                                {key.type}
+                                <span class="text-fg-2">{key.fingerprint}</span>
+                                {#if key.comment}<span class="text-fg-3">{key.comment}</span>{/if}
+                            </li>
+                        {/each}
+                    </ul>
+                {/if}
+            </dd>
             {#if profile.description}
                 <dt class="text-fg-3">Description</dt>
                 <dd>{profile.description}</dd>
@@ -111,6 +131,11 @@
                 {/if}
             </dd>
         </dl>
+        <p class="mt-5 max-w-xl text-fg-2">
+            A virtual machine that does not say its own secure boot or SSH keys takes the ones of
+            its profile. One that says its own keeps it, and the keys it gives replace these, they
+            do not add to them.
+        </p>
     </SettingsSection>
 
     {#if !profile.builtin && profile.phase !== 'Deleting'}

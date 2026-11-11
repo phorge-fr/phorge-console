@@ -2,7 +2,8 @@
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import ResourceFields from '#lib/components/ResourceFields.svelte';
-    import { INSTANCE_NAME_PATTERN, MAX_SSH_KEYS } from '#lib/instances';
+    import SshKeysField from '#lib/components/SshKeysField.svelte';
+    import { INSTANCE_NAME_PATTERN } from '#lib/instances';
     import { MAX_INSTANCE_NETWORKS } from '#lib/networks';
     import { describeSize } from '#lib/profiles';
     import { untrack } from 'svelte';
@@ -204,25 +205,10 @@
                 {/if}
             </fieldset>
 
-            <div class="flex flex-col gap-1.5">
-                <label for="{id}-keys" class="field-label">
-                    SSH public keys <span class="font-normal text-fg-3">(optional)</span>
-                </label>
-                <textarea
-                    id="{id}-keys"
-                    name="sshPublicKeys"
-                    rows="3"
-                    autocomplete="off"
-                    spellcheck="false"
-                    placeholder="ssh-ed25519 AAAA… you@laptop"
-                    class="field h-auto min-h-20 py-2 font-mono text-sm"
-                    aria-describedby="{id}-keys-help">{values?.sshPublicKeys ?? ''}</textarea
-                >
-                <p id="{id}-keys-help" class="help">
-                    One per line, {MAX_SSH_KEYS} at most. They are put in the machine when it starts,
-                    so the image must be a <code class="font-mono">cloud</code> variant.
-                </p>
-            </div>
+            <SshKeysField {id} value={values?.sshPublicKeys ?? ''}>
+                They are put in the machine when it starts, so the image must be a
+                <code class="font-mono">cloud</code> variant.
+            </SshKeysField>
 
             <details>
                 <summary class="cursor-pointer text-sm font-semibold text-fg-2">
