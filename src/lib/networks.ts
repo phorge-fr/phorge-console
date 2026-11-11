@@ -46,3 +46,16 @@ export function isIpv4Cidr(value: string) {
     const [a, b, c, d, prefix] = match.slice(1).map(Number);
     return [a, b, c, d].every((part) => part <= 255) && prefix <= 32;
 }
+
+/** The most networks an instance is attached to (`maxItems` of `networks` in the OpenAPI document). */
+export const MAX_INSTANCE_NETWORKS = 8;
+
+/** What is wrong with the networks chosen for an instance, in plain words, or undefined. A comfort: the API checks it again. */
+export function networksProblem(names: string[]): string | undefined {
+    if (names.length === 0) return 'Choose at least one network.';
+    if (names.length > MAX_INSTANCE_NETWORKS)
+        return `An instance is attached to ${MAX_INSTANCE_NETWORKS} networks at most.`;
+    if (names.some((name) => !NETWORK_NAME.test(name))) return 'Choose a network from the list.';
+    if (new Set(names).size !== names.length) return 'The same network is chosen twice.';
+    return undefined;
+}
