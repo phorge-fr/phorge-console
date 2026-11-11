@@ -100,7 +100,11 @@
                             <td
                                 class="block py-0.5 font-mono text-sm text-fg-2 md:table-cell md:px-4 md:py-3.5"
                             >
-                                {instance.ipv4 ?? '—'}
+                                {#each (instance.networks ?? []).filter((network) => network.ipv4) as network (network.name)}
+                                    <span class="block">{network.ipv4}</span>
+                                {:else}
+                                    {instance.ipv4 ?? '—'}
+                                {/each}
                             </td>
                         </tr>
                         {#if instance.problems}
