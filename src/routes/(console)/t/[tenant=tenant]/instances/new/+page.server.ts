@@ -10,7 +10,7 @@ import { createInstance, type InstanceCreate } from '#lib/server/instances';
 import type { Actions, PageServerLoad } from './$types';
 
 // What the form needs: the images and the networks that are `Ready` (the API refuses any other) and the quota, to say what is left in
-// the plan. A tenant has no network until its people create one. The quota only informs: the form works without it, and the API
+// the tenant. A tenant has no network until its people create one. The quota only informs: the form works without it, and the API
 // refuses a request past a limit (`409`, `quota_exceeded`) with a message that says which.
 export const load: PageServerLoad = async (event) => {
     const [quota, images, networks, profiles] = await Promise.all([

@@ -171,7 +171,7 @@
     {#if instance.phase === 'Ready'}
         <SettingsSection
             title="Size"
-            description="A bigger size is applied to the running machine. To lower the memory, stop the machine first. The plan of the tenant sets the limit."
+            description="A bigger size is applied to the running machine. To lower the memory, stop the machine first. The limits of the tenant bound it."
         >
             {#if data.profiles.length}
                 {#if form?.profile?.message}

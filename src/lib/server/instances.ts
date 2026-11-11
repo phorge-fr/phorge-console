@@ -79,7 +79,7 @@ export const getInstance = (event: RequestEvent, tenant: string, name: string) =
     apiJson<Instance>(event, one(tenant, name));
 
 /**
- * The answer is 202: the instance is `Provisioning` for about a minute. A limit of the plan is refused at once, with 409
+ * The answer is 202: the instance is `Provisioning` for about a minute. A limit of the tenant is refused at once, with 409
  * `quota_exceeded` and a message that says which; a network that is not ready is 409 `network_not_ready`.
  */
 export const createInstance = (event: RequestEvent, tenant: string, instance: InstanceCreate) =>

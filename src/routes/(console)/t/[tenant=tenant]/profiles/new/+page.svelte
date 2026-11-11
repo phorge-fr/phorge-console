@@ -78,7 +78,7 @@
                     memoryMiB: form?.values?.memoryMiB ?? '',
                     diskGiB: form?.values?.diskGiB ?? ''
                 }}
-                hint="The plan of the tenant limits what its machines hold in all. A profile bigger than the plan is made, but a machine that asks for it is refused."
+                hint="The limits of the tenant bound what its machines hold in all. A profile bigger than what is left is made, but a machine that asks for it is refused."
             />
         </fieldset>
 
