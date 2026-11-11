@@ -36,6 +36,22 @@
         {/snippet}
     </PageHeader>
 
+    {#if data.deleted}
+        <div class="mb-6">
+            <Alert
+                tone="info"
+                title={data.deleted.gone ? 'Profile deleted' : 'Deleting the profile'}
+            >
+                {#if data.deleted.gone}
+                    <span class="font-mono">{data.deleted.name}</span> is gone.
+                {:else}
+                    <span class="font-mono">{data.deleted.name}</span> is being deleted. This list follows
+                    it until it is gone.
+                {/if}
+            </Alert>
+        </div>
+    {/if}
+
     <div class="panel overflow-hidden">
         <table class="w-full border-collapse text-left">
             <thead class="sr-only md:table-header-group md:not-sr-only">

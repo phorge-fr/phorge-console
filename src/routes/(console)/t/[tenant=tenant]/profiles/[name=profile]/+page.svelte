@@ -2,7 +2,6 @@
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
     import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
-    import InstanceStatus from '#lib/components/InstanceStatus.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
@@ -13,6 +12,9 @@
     const list = $derived(`/t/${data.tenant.name}/profiles`);
     const instances = $derived(data.instances);
     // The page follows a profile that is being made or deleted.
+    const notices = $derived(
+        !!profile.problems || profile.phase === 'Provisioning' || profile.phase === 'Deleting'
+    );
     const busy = $derived(profile.phase === 'Provisioning' || profile.phase === 'Deleting');
     // Said next to the form, so that the person knows before the API refuses.
     const consequence = $derived(
@@ -37,22 +39,22 @@
         {/snippet}
     </PageHeader>
 
-    {#if profile.problems}
-        <div class="mb-8 max-w-xl">
+    <div class="mb-8 flex max-w-xl flex-col gap-3" hidden={!notices}>
+        {#if profile.problems}
             <Alert tone="danger" title="What is wrong">{profile.problems}</Alert>
-        </div>
-    {/if}
-    {#if profile.phase === 'Deleting'}
-        <div class="mb-8 max-w-xl">
+        {/if}
+        {#if profile.phase === 'Provisioning'}
+            <Alert tone="info">This profile is being made. This page follows it.</Alert>
+        {:else if profile.phase === 'Deleting'}
             <Alert tone="info">
                 This profile is being deleted. It disappears from the list when it is gone.
             </Alert>
-        </div>
-    {/if}
+        {/if}
+    </div>
 
     <SettingsSection
         title="Overview"
-        description="A profile cannot be changed: to change one, make another and move your machines to it."
+        description="The size a virtual machine takes when it has this profile."
     >
         <dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-8 gap-y-3">
             <dt class="text-fg-3">vCPU</dt>
@@ -67,7 +69,11 @@
             {/if}
             {#if profile.builtin}
                 <dt class="text-fg-3">Kind</dt>
-                <dd>Built in: every tenant has it.</dd>
+                <dd>
+                    Built in: every tenant has <span class="font-mono">s</span>,
+                    <span class="font-mono">m</span> and <span class="font-mono">l</span>. This one
+                    cannot be changed or deleted.
+                </dd>
             {/if}
             {#if profile.createdAt}
                 <dt class="text-fg-3">Created</dt>
@@ -83,43 +89,41 @@
                         >{/if}
                 </dd>
             {/if}
+            <dt class="text-fg-3">Instances</dt>
+            <dd>
+                {#if instances === undefined}
+                    <span class="text-fg-2"
+                        >The instances of this tenant could not be listed. Reload the page to try
+                        again.</span
+                    >
+                {:else}
+                    {#each instances as instance (instance.name)}
+                        <span class="block"
+                            ><a
+                                href="/t/{data.tenant.name}/instances/{instance.name}"
+                                class="font-mono">{instance.name}</a
+                            >
+                            <span class="text-fg-3">{instance.phase}</span></span
+                        >
+                    {:else}
+                        <span class="text-fg-2">No instance has this profile.</span>
+                    {/each}
+                {/if}
+            </dd>
         </dl>
     </SettingsSection>
 
-    <SettingsSection
-        title="Virtual machines"
-        description="The machines of this tenant that have this profile for their size."
-    >
-        {#if !instances}
-            <p class="text-fg-3">The virtual machines of this tenant cannot be listed right now.</p>
-        {:else if instances.length === 0}
-            <p class="text-fg-3">No virtual machine has this profile.</p>
-        {:else}
-            <ul class="panel divide-y divide-line">
-                {#each instances as instance (instance.name)}
-                    <li
-                        class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3"
-                    >
-                        <a
-                            href="/t/{data.tenant.name}/instances/{instance.name}"
-                            class="font-mono font-semibold">{instance.name}</a
-                        >
-                        <InstanceStatus {instance} />
-                    </li>
-                {/each}
-            </ul>
-        {/if}
-    </SettingsSection>
-
-    {#if profile.builtin}
-        <SettingsSection title="Delete this profile">
-            <p class="max-w-xl">
-                Every tenant has the three profiles <span class="font-mono">s</span>,
-                <span class="font-mono">m</span> and <span class="font-mono">l</span>. They are part
-                of the tenant: they cannot be changed or deleted.
+    {#if !profile.builtin && profile.phase !== 'Deleting'}
+        <SettingsSection
+            title="Change this profile"
+            description="A profile cannot be changed once it is made."
+        >
+            <p class="max-w-xl text-fg-2">
+                To get another size, make a new profile and move your virtual machines to it from
+                their pages.
             </p>
         </SettingsSection>
-    {:else if profile.phase !== 'Deleting'}
+
         <SettingsSection
             title="Delete this profile"
             description="The profile is removed from the tenant."

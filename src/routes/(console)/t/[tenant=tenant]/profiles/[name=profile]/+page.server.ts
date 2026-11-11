@@ -37,7 +37,7 @@ export const actions: Actions = {
         const result = await deleteProfile(event, event.params.tenant, name);
         if (result.ok === false)
             return fail(result.status, { remove: { message: result.message } });
-        // The profile stays, `Deleting`, until it is gone: the list follows it.
-        redirect(303, `/t/${event.params.tenant}/profiles`);
+        // The profile stays, `Deleting`, until it is gone: the list follows it and says what became of it.
+        redirect(303, `/t/${event.params.tenant}/profiles?deleted=${name}`);
     }
 };

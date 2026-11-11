@@ -1,6 +1,7 @@
 <script lang="ts">
     import Alert from '#lib/components/Alert.svelte';
     import AutoRefresh from '#lib/components/AutoRefresh.svelte';
+    import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
@@ -81,7 +82,7 @@
                     >
                 </div>
             {/if}
-            <form method="POST" class="flex max-w-xl flex-col gap-6">
+            <form method="POST" action="?/save" class="flex max-w-xl flex-col gap-6">
                 <div class="flex flex-col gap-1.5">
                     <label for="{id}-description" class="field-label">Description</label>
                     <input
@@ -139,6 +140,24 @@
                     <a href={list} class="btn-ghost">Back to the networks</a>
                 </div>
             </form>
+        </SettingsSection>
+    {/if}
+
+    {#if network.phase !== 'Deleting'}
+        <SettingsSection
+            title="Delete this network"
+            description="The network is removed from the platform."
+        >
+            <div class="max-w-xl">
+                {#if form?.remove?.message}
+                    <div class="mb-4"><Alert tone="danger">{form.remove.message}</Alert></div>
+                {/if}
+                <ConfirmDelete
+                    name={network.name}
+                    what="network"
+                    consequence="The deletion is refused while a virtual machine is attached to the network: remove the network from those machines or delete them first. You can create the network again later."
+                />
+            </div>
         </SettingsSection>
     {/if}
 </main>
