@@ -2,6 +2,8 @@
     import Alert from '#lib/components/Alert.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import {
+        IPV4_HELP,
+        IPV6_HELP,
         MAX_NETWORK_DESCRIPTION_LENGTH,
         MAX_NETWORK_NAME_LENGTH,
         NETWORK_NAME_PATTERN
@@ -82,8 +84,29 @@
                 aria-describedby="{id}-ipv4-help"
             />
             <p id="{id}-ipv4-help" class="help">
-                A private range, from /16 to /29, written as its network address, like 10.77.1.0/24.
-                Leave it empty and the platform chooses one. It cannot change.
+                {IPV4_HELP} Leave it empty and the platform chooses one. It can be changed later, but
+                not removed.
+            </p>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+            <label for="{id}-ipv6" class="field-label">
+                IPv6 range <span class="font-normal text-fg-3">(optional)</span>
+            </label>
+            <input
+                id="{id}-ipv6"
+                name="ipv6"
+                maxlength="43"
+                value={form?.values?.ipv6 ?? ''}
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="fd42:1:2:3::/64"
+                class="field max-w-72 font-mono"
+                aria-describedby="{id}-ipv6-help"
+            />
+            <p id="{id}-ipv6-help" class="help">
+                {IPV6_HELP} Leave it empty and the platform chooses one. It can be changed later, but
+                not removed.
             </p>
         </div>
 
