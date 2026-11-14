@@ -47,9 +47,7 @@
 </script>
 
 <svelte:head>
-    <title
-        >{instance.name} · Instances · {data.tenant.displayName || data.tenant.name} · Phorge console</title
-    >
+    <title>{instance.name} · Instances · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <AutoRefresh active={busy} />

@@ -17,9 +17,7 @@
 </script>
 
 <svelte:head>
-    <title
-        >{image.name} · Images · {data.tenant.displayName || data.tenant.name} · Phorge console</title
-    >
+    <title>{image.name} · Images · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <AutoRefresh active={busy} />
