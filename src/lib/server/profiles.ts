@@ -32,11 +32,11 @@ export const listProfiles = async (event: RequestEvent, tenant: string) =>
     (await apiJson<{ items: Profile[] }>(event, base(tenant))).items;
 
 const NOT_OPERATOR =
-    'Only operators and administrators of this tenant can create or delete profiles.';
+    'Only operators and administrators of this tenant can create, change or delete profiles.';
 
 /**
  * The answer is 202: the profile is `Provisioning` until it is made. A tenant holds a limited number of them: past it the API
- * answers 409 `quota_exceeded`. There is no change: to change a profile, make another and move the instances.
+ * answers 409 `quota_exceeded`.
  */
 export const createProfile = (
     event: RequestEvent,
@@ -53,6 +53,38 @@ export const createProfile = (
         sshPublicKeys?: string[];
     }
 ) => apiAction<Profile>(event, base(tenant), jsonRequest('POST', profile), NOT_OPERATOR);
+
+/** What changes on a profile: what is absent is left alone. */
+export type ProfilePatch = {
+    /** An empty string goes back to the description the platform makes from the size. */
+    description?: string;
+    cpu?: number;
+    memoryMiB?: number;
+    diskGiB?: number;
+    /** `null` removes the setting: the profile then does not say it. */
+    secureBoot?: boolean | null;
+    /** An empty list removes the keys. */
+    sshPublicKeys?: string[];
+};
+
+/**
+ * The answer is 200, the profile as it is now; the platform applies it to the instances that have it a moment later. A change that
+ * cannot be made in place is a 409 whose sentence says what to do and is shown as it is: a smaller disk while an instance has the
+ * profile (`in_use`), less memory while one that has it runs (`running`), a size that takes the tenant over its limits
+ * (`quota_exceeded`). The console never stops an instance to make a change possible.
+ */
+export const patchProfile = (
+    event: RequestEvent,
+    tenant: string,
+    name: string,
+    patch: ProfilePatch
+) =>
+    apiAction<Profile>(
+        event,
+        `${base(tenant)}/${encodeURIComponent(name)}`,
+        jsonRequest('PATCH', patch),
+        NOT_OPERATOR
+    );
 
 /**
  * The answer is 202. While an instance has the profile the API answers 409 and names the instances in its message; for a few

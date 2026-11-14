@@ -26,7 +26,7 @@
 <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
     <PageHeader
         title="Profiles"
-        subtitle="The sizes your virtual machines can take. Every tenant has s, m and l; you can make your own. A profile cannot be changed: to change one, make another and move your machines to it."
+        subtitle="The sizes your virtual machines can take. Every tenant has s, m and l; you can make your own, and change them from their page."
     >
         {#snippet actions()}
             <a href="{base}/new" class="btn-primary">

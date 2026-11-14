@@ -87,7 +87,7 @@
             <p class="help -mt-1">
                 Optional. An instance that does not say its own takes what the profile says. One
                 that does keeps its own, and the keys it gives replace these, they do not add to
-                them. They cannot change once the profile is made.
+                them. You can change them later, from the page of the profile.
             </p>
 
             <div class="flex flex-col gap-1.5">

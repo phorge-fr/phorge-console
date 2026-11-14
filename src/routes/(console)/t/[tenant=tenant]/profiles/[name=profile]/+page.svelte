@@ -4,12 +4,30 @@
     import ConfirmDelete from '#lib/components/ConfirmDelete.svelte';
     import PageHeader from '#lib/components/PageHeader.svelte';
     import PhaseBadge from '#lib/components/PhaseBadge.svelte';
+    import ResourceFields from '#lib/components/ResourceFields.svelte';
     import SettingsSection from '#lib/components/SettingsSection.svelte';
-    import { describeSecureBoot } from '#lib/profiles';
+    import SshKeysField from '#lib/components/SshKeysField.svelte';
+    import {
+        describeSecureBoot,
+        MAX_PROFILE_DESCRIPTION_LENGTH,
+        SECURE_BOOT_CHOICES
+    } from '#lib/profiles';
 
     let { data, form } = $props();
 
+    const id = $props.id();
     const profile = $derived(data.profile);
+    // What the form holds: what was sent before an error, else the profile as it is.
+    const values = $derived(
+        form?.values ?? {
+            description: profile.description ?? '',
+            cpu: String(profile.cpu),
+            memoryMiB: String(profile.memoryMiB),
+            diskGiB: String(profile.diskGiB),
+            secureBoot: profile.secureBoot === undefined ? '' : profile.secureBoot ? 'on' : 'off',
+            sshPublicKeys: (profile.sshPublicKeys ?? []).join('\n')
+        }
+    );
     const list = $derived(`/t/${data.tenant.name}/profiles`);
     const instances = $derived(data.instances);
     // The page follows a profile that is being made or deleted.
@@ -139,12 +157,90 @@
     {#if !profile.builtin && profile.phase !== 'Deleting'}
         <SettingsSection
             title="Change this profile"
-            description="A profile cannot be changed once it is made."
+            description="What you leave as it is does not change. The machines that have this profile follow the change, except the ones that say their own value."
         >
-            <p class="max-w-xl text-fg-2">
-                To get another size, make a new profile and move your virtual machines to it from
-                their pages.
-            </p>
+            {#if form?.message}
+                <div class="mb-5 max-w-xl">
+                    <Alert tone="danger" title="The profile was not changed">{form.message}</Alert>
+                </div>
+            {:else if form?.saved}
+                <div class="mb-5 max-w-xl">
+                    <Alert tone="info"
+                        >Saved. The platform applies the change to the machines that have this
+                        profile in a few seconds.</Alert
+                    >
+                </div>
+            {/if}
+            <form method="POST" action="?/save" class="flex max-w-xl flex-col gap-6">
+                <div class="flex flex-col gap-1.5">
+                    <label for="{id}-description" class="field-label">Description</label>
+                    <input
+                        id="{id}-description"
+                        name="description"
+                        maxlength={MAX_PROFILE_DESCRIPTION_LENGTH}
+                        value={values.description}
+                        autocomplete="off"
+                        class="field"
+                        aria-describedby="{id}-description-help"
+                    />
+                    <p id="{id}-description-help" class="help">
+                        Empty goes back to a description made from the size.
+                    </p>
+                </div>
+
+                <fieldset class="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
+                    <legend class="field-label mb-2 p-0">Size</legend>
+                    <ResourceFields
+                        values={{
+                            cpu: values.cpu,
+                            memoryMiB: values.memoryMiB,
+                            diskGiB: values.diskGiB
+                        }}
+                        hint="A running machine sees more memory at once; more vCPU or disk may need a restart. Less memory is refused while a machine that has this profile runs: stop it, change the profile, then start it again. A disk can only grow while a machine has this profile. A size that takes the tenant over its limits is refused. The console never stops a machine for you."
+                    />
+                </fieldset>
+
+                <fieldset class="m-0 flex min-w-0 flex-col gap-5 border-0 p-0">
+                    <legend class="field-label mb-1 p-0">For its instances</legend>
+                    <p class="help -mt-1">
+                        An instance that does not say its own takes what the profile says. One that
+                        does keeps its own, and the keys it gives replace these, they do not add to
+                        them.
+                    </p>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label for="{id}-secureboot" class="field-label">UEFI secure boot</label>
+                        <select
+                            id="{id}-secureboot"
+                            name="secureBoot"
+                            class="field max-w-sm"
+                            aria-describedby="{id}-secureboot-help"
+                        >
+                            {#each SECURE_BOOT_CHOICES as choice (choice.value)}
+                                <option
+                                    value={choice.value}
+                                    selected={values.secureBoot === choice.value}
+                                >
+                                    {choice.label}
+                                </option>
+                            {/each}
+                        </select>
+                        <p id="{id}-secureboot-help" class="help">
+                            Not set removes the setting: the profile then does not say it.
+                        </p>
+                    </div>
+
+                    <SshKeysField {id} value={values.sshPublicKeys}>
+                        They are put in the machine when it starts, so the image must be a
+                        <code class="font-mono">cloud</code> variant. Emptying the field removes the keys.
+                    </SshKeysField>
+                </fieldset>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="btn-primary">Save the profile</button>
+                    <a href={list} class="btn-ghost">Back to the profiles</a>
+                </div>
+            </form>
         </SettingsSection>
 
         <SettingsSection
