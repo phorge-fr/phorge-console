@@ -1,7 +1,7 @@
 ---
 type: reference
 audience: developer who adds a view to the console
-verified: 2026-11-11
+verified: 2026-11-14
 ---
 
 # Console patterns
@@ -75,7 +75,7 @@ The page is at `…/<kind>/<name>` (`/t/<name>` for a tenant). The name is check
 
 The page exists anyway, because the name in the list links to it. It holds the overview and, when the kind can be deleted, the delete section.
 
-- Where the form would be, there is no disabled form. A section titled like the edit says in one sentence that the object cannot change and what to do instead (an image is deleted and pulled again; a profile is made again and the machines are moved to it).
+- Where the form would be, there is no disabled form. A section titled like the edit says in one sentence that the object cannot change and what to do instead (an image is deleted and pulled again).
 - When an issue tracks the edit, the sentence points at it as `ComingNext` does.
 - An object that cannot be deleted (a built-in profile) has no delete section, and its overview says that it is built in and cannot be changed or deleted.
 
