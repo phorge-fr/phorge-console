@@ -16,8 +16,7 @@ export const actions: Actions = {
     default: async (event) => {
         const form = await event.request.formData();
         const name = String(form.get('name') ?? '').trim();
-        const displayName = String(form.get('displayName') ?? '').trim();
-        const values = { name, displayName };
+        const values = { name };
 
         // What the person can fix is said here, in their words; the API checks it all again.
         if (!TENANT_NAME.test(name))
@@ -26,10 +25,8 @@ export const actions: Actions = {
                 message:
                     'The name has 2 to 28 characters: lowercase letters, digits and hyphens, starting with a letter.'
             });
-        if (displayName.length > 100)
-            return fail(400, { values, message: 'The display name is 100 characters at most.' });
 
-        const result = await createTenant(event, { name, ...(displayName ? { displayName } : {}) });
+        const result = await createTenant(event, { name });
         if (result.ok === false) return fail(result.status, { values, message: result.message });
         // The tenant exists and is being made: its page follows it until it is ready.
         redirect(303, `/t/${name}`);

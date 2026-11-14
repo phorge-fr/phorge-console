@@ -23,7 +23,7 @@
         index: number;
         scopes: SvelteSet<string>;
         chosen: SvelteSet<string>;
-        tenants: { name: string; displayName?: string }[];
+        tenants: { name: string }[];
         open: boolean;
         removable: boolean;
         onopen: () => void;
@@ -32,18 +32,11 @@
     } = $props();
 
     const id = $props.id();
-    const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
     const byName = $derived(new Map(tenants.map((t) => [t.name, t])));
-    const nameOf = (name: string) => label(byName.get(name) ?? { name });
+    const nameOf = (name: string) => (byName.get(name) ?? { name }).name;
 
-    // The tenants as things to pick: the name of the tenant is what is sent, its display name what is read.
-    const pickable = $derived(
-        tenants.map((t) => ({
-            name: t.name,
-            label: label(t),
-            hint: t.displayName ? t.name : undefined
-        }))
-    );
+    // The tenants as things to pick: the name of the tenant is what is sent and what is read.
+    const pickable = $derived(tenants.map((t) => ({ name: t.name, label: t.name })));
 
     // The permissions are a list of resources, each with its own verbs (`instances:read`, `instances:write`, ...). A resource has a
     // checkbox for all its verbs and opens to show each one; a verb can be given on every resource at once. So a resource with eight

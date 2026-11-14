@@ -10,7 +10,7 @@
 </script>
 
 <svelte:head>
-    <title>Pull an image · {data.tenant.displayName || data.tenant.name} · Phorge console</title>
+    <title>Pull an image · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">

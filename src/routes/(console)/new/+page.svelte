@@ -5,6 +5,19 @@
     let { form } = $props();
 
     const id = $props.id();
+    // What the person typed since the page came, else what the server sent back with an error.
+    let typed = $state<string>();
+    const name = $derived(typed ?? form?.values?.name ?? '');
+
+    // The rules of the name, said as the person types: the first one that is not met. The API checks it all again.
+    const problem = $derived.by(() => {
+        if (!name) return '';
+        if (!/^[a-z]/.test(name)) return 'Start with a lowercase letter.';
+        if (/[^a-z0-9-]/.test(name)) return 'Use only lowercase letters, digits and hyphens.';
+        if (name.length < 2) return 'Use at least 2 characters.';
+        if (name.length > 28) return 'Use 28 characters at most.';
+        return '';
+    });
 </script>
 
 <svelte:head>
@@ -31,6 +44,8 @@
                 required
                 pattern="[a-z][a-z0-9\-]{'{1,27}'}"
                 value={form?.values?.name ?? ''}
+                oninput={(event) => (typed = event.currentTarget.value)}
+                aria-invalid={problem ? 'true' : undefined}
                 autocomplete="off"
                 autocapitalize="off"
                 spellcheck="false"
@@ -38,22 +53,10 @@
                 aria-describedby="{id}-name-help"
             />
             <p id="{id}-name-help" class="help">
-                In the addresses, and it cannot change. 2 to 28 lowercase letters, digits or
-                hyphens, starting with a letter.
+                The one name of the tenant: in its addresses and the name of its project. It cannot
+                change. 2 to 28 lowercase letters, digits or hyphens, starting with a letter.
             </p>
-        </div>
-
-        <div class="flex flex-col gap-1.5">
-            <label for="{id}-display" class="field-label">
-                Display name <span class="font-normal text-fg-3">(optional)</span>
-            </label>
-            <input
-                id="{id}-display"
-                name="displayName"
-                maxlength="100"
-                value={form?.values?.displayName ?? ''}
-                class="field max-w-md"
-            />
+            <p class="min-h-5 text-sm text-warn-fg" aria-live="polite">{problem}</p>
         </div>
 
         <p class="help">You own the tenant. The number of tenants you can own is limited.</p>

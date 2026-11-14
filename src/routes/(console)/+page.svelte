@@ -67,13 +67,8 @@
                                 <a
                                     href="/t/{tenant.name}"
                                     class="font-semibold text-fg no-underline after:absolute after:inset-0 after:content-['']"
-                                    >{tenant.displayName || tenant.name}</a
+                                    >{tenant.name}</a
                                 >
-                                {#if tenant.displayName}
-                                    <span class="block font-mono text-sm text-fg-3"
-                                        >{tenant.name}</span
-                                    >
-                                {/if}
                             </td>
                             <td class="block py-1 md:table-cell md:px-4 md:py-3.5">
                                 <PhaseBadge phase={tenant.phase} />

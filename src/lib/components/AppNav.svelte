@@ -34,11 +34,8 @@
     let find = $state('');
     const SEARCH_FROM = 8;
     const matching = $derived(
-        (tenants ?? []).filter((t) =>
-            `${t.name} ${t.displayName ?? ''}`.toLowerCase().includes(find.trim().toLowerCase())
-        )
+        (tenants ?? []).filter((t) => t.name.toLowerCase().includes(find.trim().toLowerCase()))
     );
-    const label = (t: { name: string; displayName?: string }) => t.displayName || t.name;
     const initial = (text: string) => text.trim().charAt(0).toUpperCase() || '?';
 
     const sections = $derived(
@@ -95,11 +92,11 @@
                     class="grid size-7 shrink-0 place-items-center rounded bg-primary text-sm font-bold text-on-primary"
                     aria-hidden="true"
                 >
-                    {initial(currentTenant ? label(currentTenant) : 'T')}
+                    {initial(currentTenant ? currentTenant.name : 'T')}
                 </span>
                 <span class="min-w-0 flex-1">
                     <span class="block truncate text-sm font-semibold leading-tight">
-                        {currentTenant ? label(currentTenant) : 'Choose a tenant'}
+                        {currentTenant ? currentTenant.name : 'Choose a tenant'}
                     </span>
                     <span class="block text-xs leading-tight text-fg-3">
                         {currentTenant ? 'Tenant' : `${tenants.length} available`}
@@ -138,9 +135,9 @@
                             >
                                 <span
                                     class="grid size-6 shrink-0 place-items-center rounded bg-surface-2 text-xs font-bold text-fg-2"
-                                    aria-hidden="true">{initial(label(tenant))}</span
+                                    aria-hidden="true">{initial(tenant.name)}</span
                                 >
-                                <span class="min-w-0 flex-1 truncate text-sm">{label(tenant)}</span>
+                                <span class="min-w-0 flex-1 truncate text-sm">{tenant.name}</span>
                                 {#if tenant.name === current}
                                     <Check
                                         size={16}
