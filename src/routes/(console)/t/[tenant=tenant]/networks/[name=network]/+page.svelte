@@ -25,9 +25,7 @@
 </script>
 
 <svelte:head>
-    <title
-        >{network.name} · Networks · {data.tenant.displayName || data.tenant.name} · Phorge console</title
-    >
+    <title>{network.name} · Networks · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <AutoRefresh active={busy} />

@@ -13,15 +13,11 @@
 </script>
 
 <svelte:head>
-    <title>{tenant.displayName || tenant.name} · Phorge console</title>
+    <title>{tenant.name} · Phorge console</title>
 </svelte:head>
 
 <main class="mx-auto w-full max-w-5xl px-4 py-8 md:px-10">
-    <PageHeader
-        title={tenant.displayName || tenant.name}
-        subtitle={tenant.displayName ? tenant.name : undefined}
-        back={{ href: '/', label: 'All tenants' }}
-    >
+    <PageHeader title={tenant.name} back={{ href: '/', label: 'All tenants' }}>
         {#snippet status()}
             <PhaseBadge phase={tenant.phase} />
         {/snippet}
@@ -92,30 +88,6 @@
             </Alert>
         </SettingsSection>
     {:else}
-        <SettingsSection
-            title="Name"
-            description="What the tenant is called in the console. The administrators of the tenant change it."
-        >
-            <form method="POST" action="?/update" class="flex max-w-xl flex-col gap-5">
-                {#if form?.update?.message}
-                    <Alert tone="danger">{form.update.message}</Alert>
-                {:else if form?.update?.saved}
-                    <Alert tone="info">Saved.</Alert>
-                {/if}
-                <div class="flex flex-col gap-1.5">
-                    <label for="{id}-display" class="field-label">Display name</label>
-                    <input
-                        id="{id}-display"
-                        name="displayName"
-                        maxlength="100"
-                        value={tenant.displayName ?? ''}
-                        class="field"
-                    />
-                </div>
-                <div><button type="submit" class="btn-primary">Save</button></div>
-            </form>
-        </SettingsSection>
-
         <SettingsSection
             title="Delete this tenant"
             description="For the administrators of the tenant, its owner included."

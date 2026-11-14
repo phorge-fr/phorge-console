@@ -26,9 +26,7 @@
 </script>
 
 <svelte:head>
-    <title
-        >{profile.name} · Profiles · {data.tenant.displayName || data.tenant.name} · Phorge console</title
-    >
+    <title>{profile.name} · Profiles · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <AutoRefresh active={busy} />

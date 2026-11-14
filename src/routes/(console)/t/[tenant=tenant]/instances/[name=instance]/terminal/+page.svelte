@@ -12,9 +12,7 @@
 </script>
 
 <svelte:head>
-    <title
-        >Terminal · {instance.name} · {data.tenant.displayName || data.tenant.name} · Phorge console</title
-    >
+    <title>Terminal · {instance.name} · {data.tenant.name} · Phorge console</title>
 </svelte:head>
 
 <main class="mx-auto w-full max-w-6xl px-4 py-8 md:px-10">
