@@ -7,7 +7,7 @@
     "engines": {
         "node": ">=22.17"
     },
-    "packageManager": "pnpm@12.18.0",
+    "packageManager": "pnpm@12.21.0",
     "imports": {
         "#lib/*.svelte": "./src/lib/*.svelte",
         "#lib/*.css": "./src/lib/*.css",
